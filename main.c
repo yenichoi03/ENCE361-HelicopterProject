@@ -48,8 +48,8 @@
 
 // Constants
 #define COEF_SCALE 10000
-#define BUF_SIZE 100
-#define SAMPLE_RATE_HZ 800
+#define BUF_SIZE 24
+#define SAMPLE_RATE_HZ 120
 
 // Global variables
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
@@ -86,15 +86,18 @@ void ADCIntHandler(void)
     int sum = 0;
     int j = 0;
     for (j = 0; j < BUF_SIZE; j++) {
-        sum += readCircBuf (&g_inBuffer, true) * g_coefs[j];
+        // sum += readCircBuf (&g_inBuffer, true) * g_coefs[j];
+        sum += readCircBuf(&g_inBuffer, true); // MVA
     }
-    sum = sum / COEF_SCALE;
+    // sum = sum / COEF_SCALE;
+    sum /= BUF_SIZE;
 
-    if (g_ulSampCnt > (BUF_SIZE * 5)) {
+    // calculate height value
+    if (g_ulSampCnt > (BUF_SIZE * 4)) {
         if (g_zeroHeightValue == -1) {
             g_zeroHeightValue = sum;
         }
-        g_heightPercent = (sum - g_zeroHeightValue) * 100 / ADC_STEPS_PER_V;        
+        g_heightPercent = (g_zeroHeightValue - sum) * 100 / ADC_STEPS_PER_V;        
     }
 
 
@@ -143,7 +146,7 @@ void initADC (void)
     // sequence 0 has 8 programmable steps.  Since we are only doing a single
     // conversion using sequence 3 we will only configure step 0.  For more
     // on the ADC sequences and steps, refer to the LM3S1968 datasheet.
-    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH0 | ADC_CTL_IE |
+    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH9 | ADC_CTL_IE |
                              ADC_CTL_END);    
                              
     // Since sample sequence 3 is now configured, it must be enabled.
@@ -281,7 +284,7 @@ int main(void)
             g_zeroHeightValue = -1;
         }
 
-        if (utickCount % 10 == 0) {
+        if (utickCount % 3 == 0) {
             uint16_t currentVal = readCircBuf (&g_inBuffer, false);
             uint16_t filteredVal = readCircBuf (&g_filteredBuffer, false);
 
