@@ -47,7 +47,6 @@
 #define ADC_STEPS_PER_V (4096 * 10 / 33)
 
 // Constants
-#define COEF_SCALE 10000
 #define BUF_SIZE 24
 #define SAMPLE_RATE_HZ 120
 
@@ -55,7 +54,6 @@
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
 static circBuf_t g_filteredBuffer;		// Buffer of size BUF_SIZE integers (filtered sample values)
 static uint32_t g_ulSampCnt;	// Counter for the interrupts
-int16_t g_coefs[BUF_SIZE];
 int16_t g_heightPercent = 0;
 int32_t g_zeroHeightValue = -1;
 
@@ -86,10 +84,8 @@ void ADCIntHandler(void)
     int sum = 0;
     int j = 0;
     for (j = 0; j < BUF_SIZE; j++) {
-        // sum += readCircBuf (&g_inBuffer, true) * g_coefs[j];
         sum += readCircBuf(&g_inBuffer, true); // MVA
     }
-    // sum = sum / COEF_SCALE;
     sum /= BUF_SIZE;
 
     // calculate height value
@@ -165,25 +161,6 @@ void initDisplay (void)
     OLEDInitialise ();
 }
 
-// Chebyshev low-pass filter coefficients
-void lpf_coefs(int16_t n, int16_t f, int16_t fs, int16_t *coefs)
-{
-    int16_t i;
-    float sum = 0;
-    
-    for (i = 0; i < n; i++) {
-        if (i - n / 2 == 0) {
-            coefs[i] = COEF_SCALE *  2 * f / fs;
-        } else {
-            coefs[i] = COEF_SCALE * (2 * PI * f * (i - n / 2) / fs) / (PI * (i - n / 2));
-        }
-        sum += coefs[i];
-    }
-    for (i = 0; i < n; i++) {
-        coefs[i] = (COEF_SCALE * coefs[i]) / sum;
-    }
-}
-
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
 void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode)
 {
@@ -211,45 +188,6 @@ void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t height
         OLEDStringDraw (string, 0, 2);
     }
 }
-
-void
-initialiseUSB_UART (void)
-{
-    //
-    // Enable GPIO port A which is used for UART0 pins.
-    //
-    SysCtlPeripheralEnable(UART_USB_PERIPH_UART);
-    SysCtlPeripheralEnable(UART_USB_PERIPH_GPIO);
-    //
-    // Select the alternate (UART) function for these pins.
-    //
-    GPIOPinTypeUART(UART_USB_GPIO_BASE, UART_USB_GPIO_PINS);
-    GPIOPinConfigure (GPIO_PA0_U0RX);
-    GPIOPinConfigure (GPIO_PA1_U0TX);
-
-    UARTConfigSetExpClk(UART_USB_BASE, SysCtlClockGet(), BAUD_RATE,
-    		UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-			UART_CONFIG_PAR_NONE);
-    UARTFIFOEnable(UART_USB_BASE);
-    UARTEnable(UART_USB_BASE);
-}
-
-
-//**********************************************************************
-// Transmit a string via UART0
-//**********************************************************************
-void
-UARTSend (char *pucBuffer)
-{
-    // Loop while there are more characters to send.
-    while(*pucBuffer)
-    {
-        // Write the next character to the UART Tx FIFO.
-        UARTCharPut(UART_USB_BASE, *pucBuffer);
-        pucBuffer++;
-    }
-}
-
 
 int main(void)
  {
