@@ -10,7 +10,8 @@
 // *******************************************************
 
 #include <stdint.h>
-#include "stdlib.h"
+#include <stdbool.h>
+#include <stdlib.h>
 #include "circBufT.h"
 
 // *******************************************************
@@ -57,14 +58,18 @@ void setReadIndexToNewest(circBuf_t *buffer) {
 // advance rindex, modulo (buffer size). The function deos not check
 // if reading has advanced ahead of writing.
 uint32_t
-readCircBuf (circBuf_t *buffer)
+readCircBuf (circBuf_t *buffer, bool advance)
 {
 	uint32_t entry;
 	
 	entry = buffer->data[buffer->rindex];
-	buffer->rindex++;
-	if (buffer->rindex >= buffer->size)
-	   buffer->rindex = 0;
+
+	if (advance) {
+		buffer->rindex++;
+		if (buffer->rindex >= buffer->size)
+			buffer->rindex = 0;
+	}
+
     return entry;
 }
 

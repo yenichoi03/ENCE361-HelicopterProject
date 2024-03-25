@@ -45,7 +45,7 @@ void setReadIndexToNewest(circBuf_t *buffer);
 // advance rindex, modulo (buffer size). The function deos not check
 // if reading has advanced ahead of writing.
 uint32_t
-readCircBuf (circBuf_t *buffer);
+readCircBuf (circBuf_t *buffer, bool advance);
 
 // *******************************************************
 // freeCircBuf: Releases the memory allocated to the buffer data,
