@@ -42,6 +42,16 @@ writeCircBuf (circBuf_t *buffer, uint32_t entry)
 	   buffer->windex = 0;
 }
 
+void setReadIndexToOldest(circBuf_t *buffer) {
+	buffer->rindex = buffer->windex;
+}
+
+void setReadIndexToNewest(circBuf_t *buffer) {
+	buffer->rindex = buffer->windex - 1;
+	if (buffer->rindex < 0)
+		buffer->rindex = buffer->size - 1;
+}
+
 // *******************************************************
 // readCircBuf: return entry at the current rindex location,
 // advance rindex, modulo (buffer size). The function deos not check
