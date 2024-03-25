@@ -57,8 +57,8 @@ def get_freq_response(coefs, n, fs):
 
     freqs = np.fft.fftfreq(len(coefs), 1/fs)
     # remove negative frequencies
-    psd_db = psd_db[:n//2]
-    freqs = freqs[:n//2]
+    # psd_db = psd_db[:n//2 + 1]
+    # freqs = freqs[:n//2 + 1]
     
     return freqs, psd_db
 
@@ -68,7 +68,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 n = 70
-f = 4
+f = 5.5
 fs = n * 4
 
 coefs = lpf_coefs(n, f, fs)
@@ -77,8 +77,9 @@ box_car_coefs = box_coefs(n, f, fs)
 
 freqs, psd_db = get_freq_response(coefs, n, fs)
 freqs_box, psd_db_box = get_freq_response(box_car_coefs, n, fs)
-print(freqs_box)
-print(psd_db_box)
+
+# print attenuation at 4 Hz
+print(psd_db[np.where(freqs == 4)[0][0]])
 
 x = np.arange(n)
 
@@ -89,11 +90,13 @@ plt.plot(x, box_car_coefs)
 plt.show()
 
 
-# plt.plot(freqs, psd_db)
+plt.plot(freqs, psd_db, label='lpf')
 # plt.show()
 
-# plt.plot(freqs_box, psd_db_box)
-# plt.show()
+plt.plot(freqs_box, psd_db_box, label='box')
+plt.legend()
+plt.show()
+
 
 # test different kernels against noisy sine wave of 4 Hz
 

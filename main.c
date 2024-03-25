@@ -49,11 +49,14 @@
 // Constants
 #define BUF_SIZE 70
 #define SAMPLE_RATE_HZ 280
+#define COEF_SCALE 10000
+#define CUTOFF_FREQ 5.5 // Results in -3dB at 4Hz 
 
 // Global variables
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
 static circBuf_t g_filteredBuffer;		// Buffer of size BUF_SIZE integers (filtered sample values)
 static uint32_t g_ulSampCnt;	// Counter for the interrupts
+int16_t g_coefs[BUF_SIZE];
 int16_t g_heightPercent = 0;
 int32_t g_zeroHeightValue = -1;
 
@@ -92,6 +95,7 @@ void ADCIntHandler(void)
         // sum += readCircBuf(&g_inBuffer, true);
     }
     // sum /= BUF_SIZE;
+    sum /= COEF_SCALE;
 
     // calculate height value
     if (g_ulSampCnt > (BUF_SIZE * 4)) {
@@ -194,12 +198,32 @@ void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t height
     }
 }
 
+// Chebyshev low-pass filter coefficients
+void lpf_coefs(int16_t n, float f, int16_t fs, int16_t *coefs)
+{
+    int16_t i;
+    float sum = 0;
+    
+    for (i = 0; i < n; i++) {
+        if (i - n / 2 == 0) {
+            coefs[i] = COEF_SCALE *  2 * f / fs;
+        } else {
+            coefs[i] = COEF_SCALE * (2 * PI * f * (i - n / 2) / fs) / (PI * (i - n / 2));
+        }
+        sum += coefs[i];
+    }
+    for (i = 0; i < n; i++) {
+        coefs[i] = (COEF_SCALE * coefs[i]) / sum;
+    }
+}
+
+
 int main(void)
  {
 	uint16_t i;
 	int32_t sum;
 
-    lpf_coefs(BUF_SIZE, 4, SAMPLE_RATE_HZ, g_coefs);
+    lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, g_coefs);
 	
 	initClock ();
 	initADC ();
@@ -212,6 +236,8 @@ int main(void)
     IntMasterEnable();
 
     uint32_t utickCount = 0;
+
+    lpf_coefs(BUF_SIZE, 4, SAMPLE_RATE_HZ, g_coefs);
 
 	while (1)
 	{
