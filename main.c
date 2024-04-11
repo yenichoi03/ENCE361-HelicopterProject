@@ -32,16 +32,7 @@
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
 
-//---USB Serial comms: UART0, Rx:PA0 , Tx:PA1
-#define BAUD_RATE 9600
-#define UART_USB_BASE           UART0_BASE
-#define UART_USB_PERIPH_UART    SYSCTL_PERIPH_UART0
-#define UART_USB_PERIPH_GPIO    SYSCTL_PERIPH_GPIOA
-#define UART_USB_GPIO_BASE      GPIO_PORTA_BASE
-#define UART_USB_GPIO_PIN_RX    GPIO_PIN_0
-#define UART_USB_GPIO_PIN_TX    GPIO_PIN_1
-#define UART_USB_GPIO_PINS      UART_USB_GPIO_PIN_RX | UART_USB_GPIO_PIN_TX
-
+#define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
 
 #define PI 3.14159265358979323846
 #define ADC_STEPS_PER_V (4096 * 10 / 33)
@@ -51,6 +42,9 @@
 #define SAMPLE_RATE_HZ 280
 #define COEF_SCALE 10000
 #define CUTOFF_FREQ 5.5 // Results in -3dB at 4Hz 
+#define WHEEL_SLOTS 112
+#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
+#define DEGREES_PER_REV 360
 
 // Global variables
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
@@ -60,8 +54,12 @@ int16_t g_coefs[BUF_SIZE];
 int16_t g_heightPercent = 0;
 int32_t g_zeroHeightValue = -1;
 
-typedef enum displayMode {HEIGHT = 0, FILTERED, OFF} displayMode_t;
-#define DISPLAY_MODES 3
+// Yaw
+int yaw = 0;
+int yaw_hund_deg = 0;
+
+typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
+#define DISPLAY_MODES 4
 
 displayMode_t g_displayMode = HEIGHT;
 
@@ -86,15 +84,13 @@ void ADCIntHandler(void)
     // filter the value and place it in the filtered circular buffer
     int sum = 0;
     int j = 0;
+
     // move read pointer to the correct position
     setReadIndexToOldest(&g_inBuffer);
 
     for (j = 0; j < BUF_SIZE; j++) {
-        
         sum += readCircBuf(&g_inBuffer, true) * g_coefs[j];
-        // sum += readCircBuf(&g_inBuffer, true);
     }
-    // sum /= BUF_SIZE;
     sum /= COEF_SCALE;
 
     // calculate height value
@@ -164,6 +160,73 @@ void initADC (void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
+void GPIOIntHandler(void){
+
+    int pin_state = GPIOIntStatus(GPIO_PORTB_BASE, true);
+    int rising_edge = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
+    GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
+    static int last_pin = -1;
+    static int last_transition = -1;
+
+    int current_pin = 0;
+    if (pin_state == 2) {
+        current_pin = 1;
+    } else if (pin_state == 3) {
+        last_pin = -1;
+        last_transition = -1;
+        return;
+    }
+
+    int current_transition = 0;
+
+    if (current_pin == 0) {
+        current_transition = rising_edge & 1;
+    } else {
+        current_transition = (rising_edge & 2) >> 1;
+    }
+
+    if (last_pin == -1) {
+        last_pin = current_pin;
+        last_transition = current_transition;
+        return;
+    }
+
+    if (last_pin != current_pin) {
+        if (current_pin == 1) {
+            if (last_transition == current_transition) {
+                yaw--;
+            } else {
+                yaw++;
+            }
+        } else {
+            if (last_transition != current_transition) {
+                yaw--;
+            } else {
+                yaw++;
+            }
+        }
+    }
+
+    // TODO: Add more accurate reverse yaw tracking where last_pin == current_pin
+
+    yaw_hund_deg = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
+
+    last_pin = current_pin;
+    last_transition = current_transition;
+}
+
+void initGPIO (void)
+{
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
+    GPIOPadConfigSet(GPIO_PORTB_BASE, INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+    GPIOIntTypeSet(GPIO_PORTB_BASE, INT_PINS, GPIO_BOTH_EDGES);
+    GPIOIntRegister(GPIO_PORTB_BASE, GPIOIntHandler);
+    GPIOIntEnable(GPIO_PORTB_BASE, INT_PINS);
+    GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
+}
+
+
 void initDisplay (void)
 {
     // intialise the Orbit OLED display
@@ -187,13 +250,21 @@ void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t height
 
     if (mode == HEIGHT) {
         OLEDStringDraw ("Heli - Height", 0, 0);
-        usnprintf (string, sizeof(string), "Height (%%): %4d%%", heightPercent);
+        usnprintf (string, sizeof(string), "Height: %4d%%", heightPercent);
         OLEDStringDraw (string, 0, 1);
     } else if (mode == FILTERED) {
         OLEDStringDraw ("Heli - Filter", 0, 0);
-        usnprintf (string, sizeof(string), "Filtered: %4d", filteredVal);
+        usnprintf (string, sizeof(string), "Filtered: %6d", filteredVal);
         OLEDStringDraw (string, 0, 1);
-        usnprintf (string, sizeof(string), "Curr: %4d", currentVal);
+        usnprintf (string, sizeof(string), "Curr: %6d", currentVal);
+        OLEDStringDraw (string, 0, 2);
+    } else if (mode == YAW) {
+        OLEDStringDraw ("Heli - Yaw", 0, 0);
+        usnprintf (string, sizeof(string), "Yaw: %4d", yaw);
+        OLEDStringDraw (string, 0, 1);
+        int yaw_deg = yaw_hund_deg / 100;
+        int yaw_dec_deg = yaw_hund_deg >= 0 ? yaw_hund_deg % 100 : (-yaw_hund_deg) % 100;
+        usnprintf (string, sizeof(string), "Yaw: %4d.%02d", yaw_deg, yaw_dec_deg);
         OLEDStringDraw (string, 0, 2);
     }
 }
@@ -231,6 +302,7 @@ int main(void)
 	initCircBuf (&g_inBuffer, BUF_SIZE);
 	initCircBuf (&g_filteredBuffer, BUF_SIZE);
     initButtons ();
+    initGPIO();
 
     // Enable interrupts to the processor.
     IntMasterEnable();
