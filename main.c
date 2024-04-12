@@ -160,6 +160,7 @@ void initADC (void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
+// Quadrature encoder
 void GPIOIntHandler(void){
 
     int pin_state = GPIOIntStatus(GPIO_PORTB_BASE, true);
@@ -223,7 +224,6 @@ void initGPIO (void)
     GPIOIntTypeSet(GPIO_PORTB_BASE, INT_PINS, GPIO_BOTH_EDGES);
     GPIOIntRegister(GPIO_PORTB_BASE, GPIOIntHandler);
     GPIOIntEnable(GPIO_PORTB_BASE, INT_PINS);
-    GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
 }
 
 
