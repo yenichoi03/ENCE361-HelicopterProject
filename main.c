@@ -50,6 +50,7 @@
 
 
 // Global variables
+// for branching 
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
 static circBuf_t g_filteredBuffer;		// Buffer of size BUF_SIZE integers (filtered sample values)
 static uint32_t g_ulSampCnt;	// Counter for the interrupts
