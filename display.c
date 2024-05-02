@@ -30,11 +30,9 @@
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
 #include "yaw.h"
+#include "display.h"
 
-typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
-#define DISPLAY_MODES 4
 
-displayMode_t g_displayMode = HEIGHT;
 
 void initDisplay (void)
 {

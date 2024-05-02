@@ -30,57 +30,7 @@
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
 #include "yaw.h"
-
-#define PI 3.14159265358979323846
-#define ADC_STEPS_PER_V (4096 * 10 / 33)
-
-// Constants
-#define BUF_SIZE 70
-#define SAMPLE_RATE_HZ 280
-#define COEF_SCALE 10000
-#define CUTOFF_FREQ 5.5 // Results in -3dB at 4Hz
-
-// Global variables
-
-static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
-static circBuf_t g_filteredBuffer;      // Buffer of size BUF_SIZE integers (filtered sample values)
-static uint32_t g_ulSampCnt;    // Counter for the interrupts
-int16_t g_coefs[BUF_SIZE];
-int16_t g_heightPercent = 0;
-int32_t g_zeroHeightValue = -1;
-
-void initADC (void)
-{
-    //
-    // The ADC0 peripheral must be enabled for configuration and use.
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-
-    // Enable sample sequence 3 with a processor signal trigger.  Sequence 3
-    // will do a single sample when the processor sends a signal to start the
-    // conversion.
-    ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
-
-    //
-    // Configure step 0 on sequence 3.  Sample channel 0 (ADC_CTL_CH0) in
-    // single-ended mode (default) and configure the interrupt flag
-    // (ADC_CTL_IE) to be set when the sample is done.  Tell the ADC logic
-    // that this is the last conversion on sequence 3 (ADC_CTL_END).  Sequence
-    // 3 has only one programmable step.  Sequence 1 and 2 have 4 steps, and
-    // sequence 0 has 8 programmable steps.  Since we are only doing a single
-    // conversion using sequence 3 we will only configure step 0.  For more
-    // on the ADC sequences and steps, refer to the LM3S1968 datasheet.
-    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH9 | ADC_CTL_IE |
-                             ADC_CTL_END);
-
-    // Since sample sequence 3 is now configured, it must be enabled.
-    ADCSequenceEnable(ADC0_BASE, 3);
-
-    // Register the interrupt handler
-    ADCIntRegister (ADC0_BASE, 3, ADCIntHandler);
-
-    // Enable interrupts for ADC0 sequence 3 (clears any outstanding interrupts)
-    ADCIntEnable(ADC0_BASE, 3);
-}
+#include "ADC.h"
 
 
 // The handler for the ADC conversion complete interrupt.
@@ -119,6 +69,41 @@ void ADCIntHandler(void)
     // Clean up, clearing the interrupt
     ADCIntClear(ADC0_BASE, 3);
 }
+
+
+void initADC (void)
+{
+    //
+    // The ADC0 peripheral must be enabled for configuration and use.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+
+    // Enable sample sequence 3 with a processor signal trigger.  Sequence 3
+    // will do a single sample when the processor sends a signal to start the
+    // conversion.
+    ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
+
+    //
+    // Configure step 0 on sequence 3.  Sample channel 0 (ADC_CTL_CH0) in
+    // single-ended mode (default) and configure the interrupt flag
+    // (ADC_CTL_IE) to be set when the sample is done.  Tell the ADC logic
+    // that this is the last conversion on sequence 3 (ADC_CTL_END).  Sequence
+    // 3 has only one programmable step.  Sequence 1 and 2 have 4 steps, and
+    // sequence 0 has 8 programmable steps.  Since we are only doing a single
+    // conversion using sequence 3 we will only configure step 0.  For more
+    // on the ADC sequences and steps, refer to the LM3S1968 datasheet.
+    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH9 | ADC_CTL_IE |
+                             ADC_CTL_END);
+
+    // Since sample sequence 3 is now configured, it must be enabled.
+    ADCSequenceEnable(ADC0_BASE, 3);
+
+    // Register the interrupt handler
+    ADCIntRegister (ADC0_BASE, 3, ADCIntHandler);
+
+    // Enable interrupts for ADC0 sequence 3 (clears any outstanding interrupts)
+    ADCIntEnable(ADC0_BASE, 3);
+}
+
 
 
 // The interrupt handler for the for SysTick interrupt.

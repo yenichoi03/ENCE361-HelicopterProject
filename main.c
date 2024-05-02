@@ -99,7 +99,7 @@ int main(void)
             uint16_t currentVal = readCircBuf (&g_inBuffer, false);
             uint16_t filteredVal = readCircBuf (&g_filteredBuffer, false);
 
-            displayStatistics(filteredVal, currentVal, g_heightPercent, g_ulSampCnt, g_displayMode, );
+            displayStatistics(filteredVal, currentVal, g_heightPercent, g_ulSampCnt, g_displayMode);
         }
 
 		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz

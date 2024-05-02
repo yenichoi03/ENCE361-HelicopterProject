@@ -29,18 +29,8 @@
 #include "circBufT.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
+#include "yaw.h"
 
-// CONSTANTS
-
-#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
-#define DEGREES_PER_REV 360
-#define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
-#define WHEEL_SLOTS 112
-
-// GLOBAL VARIABLES
-
-int yaw = 0;
-int yaw_hund_deg = 0;
 
 // Quadrature encoder
 void GPIOIntHandler(void){
