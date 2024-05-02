@@ -12,7 +12,7 @@
 #define ADC_H
 
 // Constants
-#define BUF_SIZE 70
+
 #define SAMPLE_RATE_HZ 280
 #define COEF_SCALE 10000
 #define CUTOFF_FREQ 5.5 // Results in -3dB at 4Hz

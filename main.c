@@ -86,9 +86,8 @@ int main(void)
         }
 
         if (utickCount % 3 == 0) {
-            CurrentValue();
-            FilteredValue();
             displayStatistics(FilteredValue(), CurrentValue(), HeightPercentageResult(), SampleCountResult(), g_displayMode, yawResult(), yawHundDegResult());
+//            displayStatistics(0,0,0,0,HEIGHT,0,0);
 
         }
 

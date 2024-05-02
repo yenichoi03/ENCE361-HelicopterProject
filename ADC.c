@@ -31,6 +31,8 @@
 #include "buttons4.h"
 #include "ADC.h"
 
+#define BUF_SIZE 70
+
 #define PI 3.14159265358979323846
 #define ADC_STEPS_PER_V (4096 * 10 / 33)
 
@@ -87,6 +89,7 @@ void ZeroHeightReset(void)
 void initADC (void)
 {
     lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, g_coefs);
+
     initCircBuf (&g_inBuffer, BUF_SIZE);
     initCircBuf (&g_filteredBuffer, BUF_SIZE);
     //
