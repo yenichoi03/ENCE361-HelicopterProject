@@ -17,10 +17,6 @@
 #define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
 #define WHEEL_SLOTS 112
 
-// GLOBAL VARIABLES
-int yaw = 0;
-int yaw_hund_deg = 0;
-
 
 /**Quadrature encoder coding yaw into degrees**/
 void GPIOIntHandler(void);

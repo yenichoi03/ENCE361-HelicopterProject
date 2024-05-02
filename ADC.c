@@ -29,9 +29,18 @@
 #include "circBufT.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
-#include "yaw.h"
 #include "ADC.h"
 
+#define PI 3.14159265358979323846
+#define ADC_STEPS_PER_V (4096 * 10 / 33)
+
+// Global variables
+static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
+static circBuf_t g_filteredBuffer;      // Buffer of size BUF_SIZE integers (filtered sample values)
+static uint32_t g_ulSampCnt;    // Counter for the interrupts
+int16_t g_coefs[BUF_SIZE];
+int16_t g_heightPercent = 0;
+int32_t g_zeroHeightValue = -1;
 
 // The handler for the ADC conversion complete interrupt.
 // Writes to the circular buffer.

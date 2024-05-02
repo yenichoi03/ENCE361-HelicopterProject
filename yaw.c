@@ -32,6 +32,11 @@
 #include "yaw.h"
 
 
+// GLOBAL VARIABLES
+int yaw = 0;
+int yaw_hund_deg = 0;
+
+
 // Quadrature encoder
 void GPIOIntHandler(void){
 

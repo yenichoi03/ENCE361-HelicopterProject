@@ -29,9 +29,7 @@
 #include "circBufT.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
-#include "yaw.h"
 #include "display.h"
-
 
 
 void initDisplay (void)
@@ -42,7 +40,7 @@ void initDisplay (void)
 
 
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
-void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode)
+void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode, int yaw, int yaw_hund_deg)
 {
     char string[17];  // 16 characters across the display
     static displayMode_t lastMode = OFF;
