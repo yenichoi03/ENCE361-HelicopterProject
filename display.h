@@ -8,13 +8,19 @@
 
 */
 
-#ifndef YAW_H
-#define YAW_H
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
-/**Quadrature encoder coding yaw into degrees**/
-void GPIOIntHandler(void);
+// Initialises the display
+void initDisplay (void)
 
-/**Calls the interrupt handler for every rising or falling edge detected**/
-void initGPIO (void);
+
+// Function to display the filtered ADC value (10-bit value, note) and sample count.
+void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode);
 
 #endif
+
+
+
+
+

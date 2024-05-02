@@ -162,49 +162,6 @@ void initADC (void)
 }
 
 
-
-void initDisplay (void)
-{
-    // intialise the Orbit OLED display
-    OLEDInitialise ();
-}
-
-// Function to display the filtered ADC value (10-bit value, note) and sample count.
-void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode)
-{
-	char string[17];  // 16 characters across the display
-    static displayMode_t lastMode = OFF;
-
-    if (mode == OFF || mode != lastMode) {
-        char emptyString[] = "                ";
-        OLEDStringDraw (emptyString, 0, 0);
-        OLEDStringDraw(emptyString, 0, 1);
-        OLEDStringDraw (emptyString, 0, 2);
-        OLEDStringDraw (emptyString, 0, 3);
-        lastMode = mode;
-    }
-
-    if (mode == HEIGHT) {
-        OLEDStringDraw ("Heli - Height", 0, 0);
-        usnprintf (string, sizeof(string), "Height: %4d%%", heightPercent);
-        OLEDStringDraw (string, 0, 1);
-    } else if (mode == FILTERED) {
-        OLEDStringDraw ("Heli - Filter", 0, 0);
-        usnprintf (string, sizeof(string), "Filtered: %6d", filteredVal);
-        OLEDStringDraw (string, 0, 1);
-        usnprintf (string, sizeof(string), "Curr: %6d", currentVal);
-        OLEDStringDraw (string, 0, 2);
-    } else if (mode == YAW) {
-        OLEDStringDraw ("Heli - Yaw", 0, 0);
-        usnprintf (string, sizeof(string), "Yaw: %4d", yaw);
-        OLEDStringDraw (string, 0, 1);
-        int yaw_deg = yaw_hund_deg / 100;
-        int yaw_dec_deg = yaw_hund_deg >= 0 ? yaw_hund_deg % 100 : (-yaw_hund_deg) % 100;
-        usnprintf (string, sizeof(string), "Yaw: %4d.%02d", yaw_deg, yaw_dec_deg);
-        OLEDStringDraw (string, 0, 2);
-    }
-}
-
 // Chebyshev low-pass filter coefficients
 void lpf_coefs(int16_t n, float f, int16_t fs, int16_t *coefs)
 {
@@ -266,7 +223,7 @@ int main(void)
             uint16_t currentVal = readCircBuf (&g_inBuffer, false);
             uint16_t filteredVal = readCircBuf (&g_filteredBuffer, false);
 
-            displayStatistics(filteredVal, currentVal, g_heightPercent, g_ulSampCnt, g_displayMode);
+            displayStatistics(filteredVal, currentVal, g_heightPercent, g_ulSampCnt, g_displayMode, );
         }
 
 		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz

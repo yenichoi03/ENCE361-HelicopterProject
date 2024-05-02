@@ -97,7 +97,6 @@ void GPIOIntHandler(void){
     last_pin = current_pin;
     last_transition = current_transition;
 
-    return yaw_hund_deg;
 }
 
 void initGPIO (void)
