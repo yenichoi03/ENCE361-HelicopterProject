@@ -31,13 +31,8 @@
 #include "circBufT.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "buttons4.h"
-#include "yaw.h"
 
-#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
-#define DEGREES_PER_REV 360
 #define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
-#define WHEEL_SLOTS 112
-
 
 #define PI 3.14159265358979323846
 #define ADC_STEPS_PER_V (4096 * 10 / 33)
@@ -47,7 +42,9 @@
 #define SAMPLE_RATE_HZ 280
 #define COEF_SCALE 10000
 #define CUTOFF_FREQ 5.5 // Results in -3dB at 4Hz 
-
+#define WHEEL_SLOTS 112
+#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
+#define DEGREES_PER_REV 360
 
 // Global variables
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
@@ -57,6 +54,9 @@ int16_t g_coefs[BUF_SIZE];
 int16_t g_heightPercent = 0;
 int32_t g_zeroHeightValue = -1;
 
+// Yaw
+int yaw = 0;
+int yaw_hund_deg = 0;
 
 typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
 #define DISPLAY_MODES 4
@@ -160,6 +160,71 @@ void initADC (void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
+// Quadrature encoder
+void GPIOIntHandler(void){
+
+    int pin_state = GPIOIntStatus(GPIO_PORTB_BASE, true);
+    int rising_edge = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
+    GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
+    static int last_pin = -1;
+    static int last_transition = -1;
+
+    int current_pin = 0;
+    if (pin_state == 2) {
+        current_pin = 1;
+    } else if (pin_state == 3) {
+        last_pin = -1;
+        last_transition = -1;
+        return;
+    }
+
+    int current_transition = 0;
+
+    if (current_pin == 0) {
+        current_transition = rising_edge & 1;
+    } else {
+        current_transition = (rising_edge & 2) >> 1;
+    }
+
+    if (last_pin == -1) {
+        last_pin = current_pin;
+        last_transition = current_transition;
+        return;
+    }
+
+    if (last_pin != current_pin) {
+        if (current_pin == 1) {
+            if (last_transition == current_transition) {
+                yaw--;
+            } else {
+                yaw++;
+            }
+        } else {
+            if (last_transition != current_transition) {
+                yaw--;
+            } else {
+                yaw++;
+            }
+        }
+    }
+
+    // TODO: Add more accurate reverse yaw tracking where last_pin == current_pin
+
+    yaw_hund_deg = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
+
+    last_pin = current_pin;
+    last_transition = current_transition;
+}
+
+void initGPIO (void)
+{
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
+    GPIOPadConfigSet(GPIO_PORTB_BASE, INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+    GPIOIntTypeSet(GPIO_PORTB_BASE, INT_PINS, GPIO_BOTH_EDGES);
+    GPIOIntRegister(GPIO_PORTB_BASE, GPIOIntHandler);
+    GPIOIntEnable(GPIO_PORTB_BASE, INT_PINS);
+}
 
 
 void initDisplay (void)
@@ -226,6 +291,8 @@ void lpf_coefs(int16_t n, float f, int16_t fs, int16_t *coefs)
 
 int main(void)
  {
+	uint16_t i;
+	int32_t sum;
 
     lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, g_coefs);
 	
