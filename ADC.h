@@ -27,6 +27,12 @@ void ADCIntHandler(void);
 // The interrupt handler for the for SysTick interrupt.
 void SysTickIntHandler(void);
 
+uint32_t FilteredValue(void);
+uint32_t CurrentValue(void);
+int16_t HeightPercentageResult(void);
+int16_t SampleCountResult(void);
+void ZeroHeightReset(void);
+
 void lpf_coefs(int16_t n, float f, int16_t fs, int16_t *coefs);
 
 

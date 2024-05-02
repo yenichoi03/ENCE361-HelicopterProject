@@ -24,4 +24,8 @@ void GPIOIntHandler(void);
 /**Calls the interrupt handler for every rising or falling edge detected**/
 void initGPIO (void);
 
+int yawResult(void);
+
+int yawHundDegResult(void);
+
 #endif

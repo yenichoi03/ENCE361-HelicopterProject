@@ -35,7 +35,7 @@
 #include "display.h"
 #include "ADC.h"
 
-
+displayMode_t g_displayMode = HEIGHT;
 
 // Initialisation functions for the clock (incl. SysTick), ADC, display
 void initClock (void)
@@ -60,23 +60,16 @@ void initClock (void)
 
 int main(void)
  {
-
-    lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, g_coefs);
-	
 	initClock ();
 	initADC ();
 	initDisplay ();
-	initCircBuf (&g_inBuffer, BUF_SIZE);
-	initCircBuf (&g_filteredBuffer, BUF_SIZE);
     initButtons ();
     initGPIO();
 
     // Enable interrupts to the processor.
     IntMasterEnable();
-
     uint32_t utickCount = 0;
 
-    lpf_coefs(BUF_SIZE, 4, SAMPLE_RATE_HZ, g_coefs);
 
 	while (1)
 	{
@@ -89,17 +82,14 @@ int main(void)
 
         if (checkButton(LEFT) == PUSHED) {
             // reset the zero height value
-            g_zeroHeightValue = -1;
+            ZeroHeightReset();
         }
 
         if (utickCount % 3 == 0) {
-            setReadIndexToNewest(&g_filteredBuffer);
-            setReadIndexToNewest(&g_inBuffer);
+            CurrentValue();
+            FilteredValue();
+            displayStatistics(FilteredValue(), CurrentValue(), HeightPercentageResult(), SampleCountResult(), g_displayMode, yawResult(), yawHundDegResult());
 
-            uint16_t currentVal = readCircBuf (&g_inBuffer, false);
-            uint16_t filteredVal = readCircBuf (&g_filteredBuffer, false);
-
-            displayStatistics(filteredVal, currentVal, g_heightPercent, g_ulSampCnt, g_displayMode, yaw, yaw_hund_deg);
         }
 
 		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz

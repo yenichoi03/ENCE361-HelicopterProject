@@ -79,9 +79,16 @@ void ADCIntHandler(void)
     ADCIntClear(ADC0_BASE, 3);
 }
 
+void ZeroHeightReset(void)
+{
+    g_zeroHeightValue = -1;
+}
 
 void initADC (void)
 {
+    lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, g_coefs);
+    initCircBuf (&g_inBuffer, BUF_SIZE);
+    initCircBuf (&g_filteredBuffer, BUF_SIZE);
     //
     // The ADC0 peripheral must be enabled for configuration and use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
@@ -122,6 +129,33 @@ void SysTickIntHandler(void)
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
 }
+
+
+
+
+
+uint32_t CurrentValue(void)
+{
+    setReadIndexToNewest(&g_inBuffer);
+    return readCircBuf(&g_inBuffer, false);
+}
+
+uint32_t FilteredValue(void)
+{
+    setReadIndexToNewest(&g_filteredBuffer);
+    return readCircBuf(&g_filteredBuffer, false);
+}
+
+int16_t HeightPercentageResult(void)
+{
+    return g_heightPercent;
+}
+
+int16_t SampleCountResult(void)
+{
+    return g_ulSampCnt;
+}
+
 
 
 // Chebyshev low-pass filter coefficients

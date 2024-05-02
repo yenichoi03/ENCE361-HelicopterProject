@@ -68,7 +68,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 n = 70
-f = 5.5
+f = 4
 fs = n * 4
 
 coefs = lpf_coefs(n, f, fs)

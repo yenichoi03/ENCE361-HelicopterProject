@@ -15,7 +15,6 @@
 typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
 #define DISPLAY_MODES 4
 
-displayMode_t g_displayMode = HEIGHT;
 
 // Initialises the display
 void initDisplay (void);

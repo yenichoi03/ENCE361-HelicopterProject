@@ -94,6 +94,16 @@ void GPIOIntHandler(void){
 
 }
 
+int yawResult(void)
+{
+    return yaw;
+}
+
+int yawHundDegResult(void)
+{
+    return yaw_hund_deg;
+}
+
 void initGPIO (void)
 {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
