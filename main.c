@@ -63,6 +63,8 @@ typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
 
 displayMode_t g_displayMode = HEIGHT;
 
+//Break this into modules
+
 // The interrupt handler for the for SysTick interrupt.
 void SysTickIntHandler(void)
 {
@@ -161,6 +163,7 @@ void initADC (void)
 }
 
 // Quadrature encoder
+// condense quadrature encoder code
 void GPIOIntHandler(void){
 
     int pin_state = GPIOIntStatus(GPIO_PORTB_BASE, true);
