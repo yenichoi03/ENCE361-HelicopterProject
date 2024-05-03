@@ -30,64 +30,26 @@
 int32_t yaw = 0;
 int32_t yaw_hund_deg = 0;
 
+int16_t QDE[4][4] = {{0, -1, 1, 0},
+                     {1, 0, 0, -1},
+                     {-1, 0, 0, 1},
+                     {0, 1, -1, 0}};
+
 // Quadrature encoder
 static void yawIntHandler(void){
+      static int prev_pin_state = 0;
+      int pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
+      GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
 
-    int pin_state = GPIOIntStatus(GPIO_PORTB_BASE, true);
-    int prev_pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
-    GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
-    static int last_pin = -1;
-    static int last_transition = -1;
-
-    int current_pin = 0;
-    if (pin_state == 2) {
-        current_pin = 1;
-    } else if (pin_state == 3) {
-        last_pin = -1;
-        last_transition = -1;
-        return;
-    }
-
-    int current_transition = 0;
-
-    if (current_pin == 0) {
-        current_transition = rising_edge & 1;
-    } else {
-        current_transition = (rising_edge & 2) >> 1;
-    }
-
-    if (last_pin == -1) {
-        last_pin = current_pin;
-        last_transition = current_transition;
-        return;
-    }
-
-    if (last_pin != current_pin) {
-        if (current_pin == 1) {
-            if (last_transition == current_transition) {
-                yaw--;
-            } else {
-                yaw++;
-            }
-        } else {
-            if (last_transition != current_transition) {
-                yaw--;
-            } else {
-                yaw++;
-            }
-        }
-    }
-
-    // TODO: Add more accurate reverse yaw tracking where last_pin == current_pin
+      yaw += QDE[prev_pin_state][pin_state];
+      prev_pin_state = pin_state;
 
     yaw_hund_deg = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
-
-    last_pin = current_pin;
-    last_transition = current_transition;
+    yaw_hund_deg = (yaw_hund_deg * (yaw_hund_deg < 0 ? -1 : 1) + 18100 ) % 36000 - 18100;
 
 }
 
-int32_t GetYawHundDeg(void)
+int32_t getYawHundDeg(void)
 {
     return yaw_hund_deg;
 }
@@ -98,7 +60,7 @@ void initYaw (void)
     GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
     GPIOPadConfigSet(GPIO_PORTB_BASE, INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
     GPIOIntTypeSet(GPIO_PORTB_BASE, INT_PINS, GPIO_BOTH_EDGES);
-    GPIOIntRegister(GPIO_PORTB_BASE, YawIntHandler);
+    GPIOIntRegister(GPIO_PORTB_BASE, yawIntHandler);
     GPIOIntEnable(GPIO_PORTB_BASE, INT_PINS);
 }
 

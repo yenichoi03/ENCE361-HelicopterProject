@@ -31,6 +31,7 @@
 #include "buttons4.h"
 #include "display.h"
 
+displayMode_t g_displayMode = HEIGHT;
 
 void initDisplay (void)
 {
@@ -38,40 +39,43 @@ void initDisplay (void)
     OLEDInitialise ();
 }
 
+void nextDisplayMode(void)
+{
+    g_displayMode = (g_displayMode + 1) % DISPLAY_MODES;
+}
+
 
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
-void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode, int yaw, int yaw_hund_deg)
+void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, int yaw_hund_deg)
 {
     char string[17];  // 16 characters across the display
     static displayMode_t lastMode = OFF;
 
-    if (mode == OFF || mode != lastMode) {
+    if (g_displayMode == OFF || g_displayMode != lastMode) {
         char emptyString[] = "                ";
         OLEDStringDraw (emptyString, 0, 0);
         OLEDStringDraw(emptyString, 0, 1);
         OLEDStringDraw (emptyString, 0, 2);
         OLEDStringDraw (emptyString, 0, 3);
-        lastMode = mode;
+        lastMode = g_displayMode;
     }
 
-    if (mode == HEIGHT) {
+    if (g_displayMode == HEIGHT) {
         OLEDStringDraw ("Heli - Height", 0, 0);
         usnprintf (string, sizeof(string), "Height: %4d%%", heightPercent);
         OLEDStringDraw (string, 0, 1);
-    } else if (mode == FILTERED) {
+    } else if (g_displayMode == FILTERED) {
         OLEDStringDraw ("Heli - Filter", 0, 0);
         usnprintf (string, sizeof(string), "Filtered: %6d", filteredVal);
         OLEDStringDraw (string, 0, 1);
         usnprintf (string, sizeof(string), "Curr: %6d", currentVal);
         OLEDStringDraw (string, 0, 2);
-    } else if (mode == YAW) {
+    } else if (g_displayMode == YAW) {
         OLEDStringDraw ("Heli - Yaw", 0, 0);
-        usnprintf (string, sizeof(string), "Yaw: %4d", yaw);
-        OLEDStringDraw (string, 0, 1);
         int yaw_deg = yaw_hund_deg / 100;
         int yaw_dec_deg = yaw_hund_deg >= 0 ? yaw_hund_deg % 100 : (-yaw_hund_deg) % 100;
         usnprintf (string, sizeof(string), "Yaw: %4d.%02d", yaw_deg, yaw_dec_deg);
-        OLEDStringDraw (string, 0, 2);
+        OLEDStringDraw (string, 0, 1);
     }
 }
 

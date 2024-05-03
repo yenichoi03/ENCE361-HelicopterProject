@@ -11,6 +11,27 @@
 #ifndef ADC_H
 #define ADC_H
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/uart.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+
 // Constants
 
 #define SAMPLE_RATE_HZ 280
@@ -19,19 +40,15 @@
 #define ADC_STEPS_PER_V (4096 * 10 / 33)
 #define BUF_SIZE 70
 
-void initADC (void);
-
-//// The handler for the ADC conversion complete interrupt.
-//// Writes to the circular buffer.
-//void ADCIntHandler(void);
+void initAltitude (void);
 
 // The interrupt handler for the for SysTick interrupt.
 void SysTickIntHandler(void);
 
-uint32_t FilteredValue(void);
-uint32_t CurrentValue(void);
-int16_t HeightPercentageResult(void);
-int16_t SampleCountResult(void);
+uint32_t getFilteredValue(void);
+uint32_t getCurrentValue(void);
+int16_t getHeightPercentage(void);
+int16_t getSampleCount(void);
 void ZeroHeightReset(void);
 
 

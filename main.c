@@ -9,6 +9,7 @@
 // Based on the 'convert' series from 2016
 //*****************************************************************************
 
+#include <altitude.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
@@ -33,9 +34,6 @@
 #include "buttons4.h"
 #include "yaw.h"
 #include "display.h"
-#include "ADC.h"
-
-displayMode_t g_displayMode = HEIGHT;
 
 // Initialisation functions for the clock (incl. SysTick), ADC, display
 void initClock (void)
@@ -61,10 +59,11 @@ void initClock (void)
 int main(void)
  {
 	initClock ();
-	initADC ();
+    initAltitude();
 	initDisplay ();
     initButtons ();
-    initGPIO();
+    initYaw ();
+
 
     // Enable interrupts to the processor.
     IntMasterEnable();
@@ -77,7 +76,7 @@ int main(void)
 
         if (checkButton(UP) == PUSHED) {
             // cycle through the display modes
-            g_displayMode = (g_displayMode + 1) % DISPLAY_MODES;
+            nextDisplayMode();
         }
 
         if (checkButton(LEFT) == PUSHED) {
@@ -86,7 +85,7 @@ int main(void)
         }
 
         if (utickCount % 3 == 0) {
-            displayStatistics(FilteredValue(), CurrentValue(), HeightPercentageResult(), SampleCountResult(), g_displayMode, yawResult(), yawHundDegResult());
+            displayStatistics(getFilteredValue(), getCurrentValue(), getHeightPercentage(), getSampleCount(), getYawHundDeg());
         }
 
 		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz

@@ -1,0 +1,122 @@
+/**  @file   ball.c
+     @author Yeni Choi, Steven Little
+     @date   14 Oct 2023
+     @brief  gives  reliable continuous yaw monitoring with sub-degree precision.
+
+             The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
+             When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
+
+*/
+#include <altitude.h>
+
+#define PI 3.14159265358979323846
+
+
+// Global variables
+static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
+static uint32_t g_ulSampCnt;    // Counter for the interrupts
+
+int16_t g_coefs[BUF_SIZE] = {-77, -75, -71, -66, -60, -52, -43, -32, -20, -7, 6, 21, 38, 55, 73, 92, 111,
+                             130, 150, 169, 189, 208, 227, 245, 262, 278, 294, 308, 320, 332, 341, 349, 356,
+                             360, 363, 364, 363, 360, 356, 349, 341, 332, 320, 308, 294, 278, 262, 245, 227,
+                             208, 189, 169, 150, 130, 111, 92, 73, 55, 38, 21, 6, -7, -20, -32, -43, -52,
+                             -60, -66, -71, -75};
+
+int16_t g_heightPercent = 0;
+int32_t g_zeroHeightValue = -1;
+int32_t g_filteredValue = 0;
+
+// The handler for the ADC conversion complete interrupt.
+// Writes to the circular buffer.
+static void ADCIntHandler(void)
+{
+    uint32_t ulValue;
+
+    ADCSequenceDataGet(ADC0_BASE, 3, &ulValue);
+    // Place it in the circular buffer (advancing write index)
+    writeCircBuf (&g_inBuffer, ulValue);
+
+    int sum = 0;
+    int j = 0;
+
+    // move read pointer to the correct position
+    setReadIndexToOldest(&g_inBuffer);
+
+    for (j = 0; j < BUF_SIZE; j++) {
+        sum += readCircBuf(&g_inBuffer, true);
+    }
+    sum /= BUF_SIZE;
+
+    // calculate height value
+    if (g_ulSampCnt > (BUF_SIZE * 4)) {
+        if (g_zeroHeightValue == -1) {
+            g_zeroHeightValue = sum;
+        }
+        g_heightPercent = (g_zeroHeightValue - sum) * 100 / ADC_STEPS_PER_V;
+    }
+
+    g_filteredValue = sum;
+
+    // Clean up, clearing the interrupt
+    ADCIntClear(ADC0_BASE, 3);
+}
+
+void ZeroHeightReset(void)
+{
+    g_zeroHeightValue = -1;
+}
+
+static void initADC (void)
+{
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+    ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
+    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH9 | ADC_CTL_IE |
+                             ADC_CTL_END);
+
+    ADCSequenceEnable(ADC0_BASE, 3);
+    ADCIntRegister (ADC0_BASE, 3, ADCIntHandler);
+    ADCIntEnable(ADC0_BASE, 3);
+}
+
+void initAltitude (void)
+{
+    initCircBuf (&g_inBuffer, BUF_SIZE);
+
+    initADC();
+}
+
+
+
+// The interrupt handler for the for SysTick interrupt.
+void SysTickIntHandler(void)
+{
+    // Initiate a conversion
+    ADCProcessorTrigger(ADC0_BASE, 3);
+    g_ulSampCnt++;
+}
+
+
+uint32_t getCurrentValue(void)
+{
+    setReadIndexToNewest(&g_inBuffer);
+    return readCircBuf(&g_inBuffer, false);
+}
+
+uint32_t getFilteredValue(void)
+{
+    return g_filteredValue;
+}
+
+int16_t getHeightPercentage(void)
+{
+    return g_heightPercent;
+}
+
+int16_t getSampleCount(void)
+{
+    return g_ulSampCnt;
+}
+
+
+
+

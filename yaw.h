@@ -12,14 +12,14 @@
 #define YAW_H
 
 // CONSTANTS
-#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
 #define DEGREES_PER_REV 360
 #define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
 #define WHEEL_SLOTS 112
+#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
 
 /**Calls the interrupt handler for every rising or falling edge detected**/
-void YawInit (void);
+void initYaw (void);
 
-int YawGetYawHundDeg(void);
+int getYawHundDeg(void);
 
 #endif
