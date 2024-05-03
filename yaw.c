@@ -44,8 +44,8 @@ static void yawIntHandler(void){
       yaw += QDE[prev_pin_state][pin_state];
       prev_pin_state = pin_state;
 
-    yaw_hund_deg = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
-    yaw_hund_deg = (yaw_hund_deg * (yaw_hund_deg < 0 ? -1 : 1) + 18100 ) % 36000 - 18100;
+      yaw_hund_deg = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
+      yaw_hund_deg = (yaw_hund_deg * (yaw_hund_deg < 0 ? -1 : 1) + 18000 ) % 36000 - 18000;
 
 }
 
