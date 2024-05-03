@@ -31,18 +31,45 @@
 #include "buttons4.h"
 #include "ADC.h"
 
-#define BUF_SIZE 70
+
 
 #define PI 3.14159265358979323846
-#define ADC_STEPS_PER_V (4096 * 10 / 33)
+
 
 // Global variables
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
-static circBuf_t g_filteredBuffer;      // Buffer of size BUF_SIZE integers (filtered sample values)
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
-int16_t g_coefs[BUF_SIZE];
+
+int16_t g_coefs[BUF_SIZE] = {0, 7, 14, 22, 30, 39, 47, 56, 65, 75, 84, 93, 103, 112, 122, 131, 140, 149, 158, 167,
+                   175, 183, 190, 198, 204, 211, 216, 222, 226, 230, 234, 237, 239, 241, 242, 242, 242,
+                   241, 239, 237, 234, 230, 226, 222, 216, 211, 204, 198, 190, 183, 175, 167, 158, 149,
+                   140, 131, 122, 112, 103, 93, 84, 75, 65, 56, 47, 39, 30, 22, 14, 7};
+
 int16_t g_heightPercent = 0;
 int32_t g_zeroHeightValue = -1;
+int32_t g_filteredValue = 0;
+
+//Chebyshev low-pass filter coefficients
+//static void lpf_coefs(int16_t n, float f, int16_t fs, int16_t**coefs)
+//{
+//    int16_t i;
+//    int32_t sum = 0;
+//
+//    (*coefs) = calloc(BUF_SIZE, sizeof(int16_t));
+//
+//    for (i = 0; i < n; i++) {
+//        if (i - n / 2 == 0) {
+//            (*coefs)[i] = COEF_SCALE *  2 * f / fs;
+//        } else {
+//            (*coefs)[i] = COEF_SCALE * (2 * PI * f * (i - n / 2) / fs) / (PI * (i - n / 2));
+//        }
+//        sum += (*coefs)[i];
+//    }
+//    for (i = 0; i < n; i++) {
+//        (*coefs)[i] = (COEF_SCALE * (*coefs)[i]) / sum;
+//    }
+//}
+
 
 // The handler for the ADC conversion complete interrupt.
 // Writes to the circular buffer.
@@ -62,9 +89,10 @@ void ADCIntHandler(void)
     setReadIndexToOldest(&g_inBuffer);
 
     for (j = 0; j < BUF_SIZE; j++) {
-        sum += readCircBuf(&g_inBuffer, true) * g_coefs[j];
+        sum += readCircBuf(&g_inBuffer, true);
     }
-    sum /= COEF_SCALE;
+    sum /= BUF_SIZE;
+//    sum /= COEF_SCALE;
 
     // calculate height value
     if (g_ulSampCnt > (BUF_SIZE * 4)) {
@@ -74,8 +102,7 @@ void ADCIntHandler(void)
         g_heightPercent = (g_zeroHeightValue - sum) * 100 / ADC_STEPS_PER_V;
     }
 
-
-    writeCircBuf (&g_filteredBuffer, sum);
+    g_filteredValue = sum;
 
     // Clean up, clearing the interrupt
     ADCIntClear(ADC0_BASE, 3);
@@ -88,10 +115,9 @@ void ZeroHeightReset(void)
 
 void initADC (void)
 {
-    lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, g_coefs);
+//    lpf_coefs(BUF_SIZE, CUTOFF_FREQ, SAMPLE_RATE_HZ, &g_coefs);
 
     initCircBuf (&g_inBuffer, BUF_SIZE);
-    initCircBuf (&g_filteredBuffer, BUF_SIZE);
     //
     // The ADC0 peripheral must be enabled for configuration and use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
@@ -134,9 +160,6 @@ void SysTickIntHandler(void)
 }
 
 
-
-
-
 uint32_t CurrentValue(void)
 {
     setReadIndexToNewest(&g_inBuffer);
@@ -145,8 +168,7 @@ uint32_t CurrentValue(void)
 
 uint32_t FilteredValue(void)
 {
-    setReadIndexToNewest(&g_filteredBuffer);
-    return readCircBuf(&g_filteredBuffer, false);
+    return g_filteredValue;
 }
 
 int16_t HeightPercentageResult(void)
@@ -160,24 +182,5 @@ int16_t SampleCountResult(void)
 }
 
 
-
-// Chebyshev low-pass filter coefficients
-void lpf_coefs(int16_t n, float f, int16_t fs, int16_t *coefs)
-{
-    int16_t i;
-    float sum = 0;
-
-    for (i = 0; i < n; i++) {
-        if (i - n / 2 == 0) {
-            coefs[i] = COEF_SCALE *  2 * f / fs;
-        } else {
-            coefs[i] = COEF_SCALE * (2 * PI * f * (i - n / 2) / fs) / (PI * (i - n / 2));
-        }
-        sum += coefs[i];
-    }
-    for (i = 0; i < n; i++) {
-        coefs[i] = (COEF_SCALE * coefs[i]) / sum;
-    }
-}
 
 

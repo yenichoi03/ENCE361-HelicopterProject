@@ -16,7 +16,8 @@
 #define SAMPLE_RATE_HZ 280
 #define COEF_SCALE 10000
 #define CUTOFF_FREQ 5.5 // Results in -3dB at 4Hz
-
+#define ADC_STEPS_PER_V (4096 * 10 / 33)
+#define BUF_SIZE 70
 
 void initADC (void);
 
@@ -32,8 +33,6 @@ uint32_t CurrentValue(void);
 int16_t HeightPercentageResult(void);
 int16_t SampleCountResult(void);
 void ZeroHeightReset(void);
-
-void lpf_coefs(int16_t n, float f, int16_t fs, int16_t *coefs);
 
 
 #endif

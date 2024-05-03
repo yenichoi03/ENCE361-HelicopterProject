@@ -87,8 +87,6 @@ int main(void)
 
         if (utickCount % 3 == 0) {
             displayStatistics(FilteredValue(), CurrentValue(), HeightPercentageResult(), SampleCountResult(), g_displayMode, yawResult(), yawHundDegResult());
-//            displayStatistics(0,0,0,0,HEIGHT,0,0);
-
         }
 
 		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz

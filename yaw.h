@@ -17,15 +17,9 @@
 #define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
 #define WHEEL_SLOTS 112
 
-
-/**Quadrature encoder coding yaw into degrees**/
-void GPIOIntHandler(void);
-
 /**Calls the interrupt handler for every rising or falling edge detected**/
-void initGPIO (void);
+void YawInit (void);
 
-int yawResult(void);
-
-int yawHundDegResult(void);
+int YawGetYawHundDeg(void);
 
 #endif
