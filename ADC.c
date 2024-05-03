@@ -73,7 +73,7 @@ int32_t g_filteredValue = 0;
 
 // The handler for the ADC conversion complete interrupt.
 // Writes to the circular buffer.
-void ADCIntHandler(void)
+static void ADCIntHandler(void)
 {
     uint32_t ulValue;
 

@@ -21,9 +21,9 @@
 
 void initADC (void);
 
-// The handler for the ADC conversion complete interrupt.
-// Writes to the circular buffer.
-void ADCIntHandler(void);
+//// The handler for the ADC conversion complete interrupt.
+//// Writes to the circular buffer.
+//void ADCIntHandler(void);
 
 // The interrupt handler for the for SysTick interrupt.
 void SysTickIntHandler(void);
