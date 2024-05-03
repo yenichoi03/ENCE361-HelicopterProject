@@ -2,22 +2,6 @@
 # design a low pass filter that removes frequencies above 4 Hz
 
     
-# void lpf_coefs(int16_t n, int16_t f, int16_t fs, int16_t *coefs)
-# {
-#     int16_t i;
-#     float sum = 0;
-#     for (i = 0; i < n; i++) {
-#         if (i - n / 2 == 0) {
-#             coefs[i] = 2 * f / fs;
-#         } else {
-#             coefs[i] = sin(2 * PI * f * (i - n / 2) / fs) / (PI * (i - n / 2));
-#         }
-#         sum += coefs[i];
-#     }
-#     for (i = 0; i < n; i++) {
-#         coefs[i] = coefs[i] / sum;
-#     }
-# }
 
 # in python:
 from math import sin, pi
@@ -68,10 +52,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 n = 70
-f = 5.5
+f = 4
 fs = n * 4
 
 coefs = lpf_coefs(n, f, fs)
+
+COEF_SCALE = 10000
+
+print([int(i) for i in np.array(coefs) * COEF_SCALE])
 
 box_car_coefs = box_coefs(n, f, fs)
 

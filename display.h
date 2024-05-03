@@ -8,18 +8,23 @@
 
 */
 
-#ifndef YAW_H
-#define YAW_H
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
-// CONSTANTS
-#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
-#define DEGREES_PER_REV 360
-#define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
-#define WHEEL_SLOTS 112
 
-/**Calls the interrupt handler for every rising or falling edge detected**/
-void YawInit (void);
+typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
+#define DISPLAY_MODES 4
 
-int YawGetYawHundDeg(void);
+
+// Initialises the display
+void initDisplay (void);
+
+// Function to display the filtered ADC value (10-bit value, note) and sample count.
+void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, displayMode_t mode, int yaw, int yaw_hund_deg);
 
 #endif
+
+
+
+
+

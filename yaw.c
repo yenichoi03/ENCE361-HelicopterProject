@@ -19,34 +19,22 @@
 #include "driverlib/uart.h"
 #include "driverlib/gpio.h"
 #include "driverlib/pin_map.h"
-#include "driverlib/pwm.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
-#include "circBufT.h"
-#include "OrbitOLED/OrbitOLEDInterface.h"
-#include "buttons4.h"
-
-// CONSTANTS
-
-#define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
-#define DEGREES_PER_REV 360
-#define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
-#define WHEEL_SLOTS 112
+#include "yaw.h"
 
 // GLOBAL VARIABLES
-
-int yaw = 0;
-int yaw_hund_deg = 0;
+int32_t yaw = 0;
+int32_t yaw_hund_deg = 0;
 
 // Quadrature encoder
-void GPIOIntHandler(void){
+static void yawIntHandler(void){
 
     int pin_state = GPIOIntStatus(GPIO_PORTB_BASE, true);
-    int rising_edge = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
+    int prev_pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
     GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
     static int last_pin = -1;
     static int last_transition = -1;
@@ -97,16 +85,20 @@ void GPIOIntHandler(void){
     last_pin = current_pin;
     last_transition = current_transition;
 
+}
+
+int32_t GetYawHundDeg(void)
+{
     return yaw_hund_deg;
 }
 
-void initGPIO (void)
+void initYaw (void)
 {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
     GPIOPadConfigSet(GPIO_PORTB_BASE, INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
     GPIOIntTypeSet(GPIO_PORTB_BASE, INT_PINS, GPIO_BOTH_EDGES);
-    GPIOIntRegister(GPIO_PORTB_BASE, GPIOIntHandler);
+    GPIOIntRegister(GPIO_PORTB_BASE, YawIntHandler);
     GPIOIntEnable(GPIO_PORTB_BASE, INT_PINS);
 }
 
