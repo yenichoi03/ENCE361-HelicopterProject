@@ -44,6 +44,10 @@ void nextDisplayMode(void)
     g_displayMode = (g_displayMode + 1) % DISPLAY_MODES;
 }
 
+int sign(int num) {
+    return (num >= 0) ? 1 : -1;
+}
+
 
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
 void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, int yaw_hund_deg)
@@ -72,8 +76,8 @@ void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t height
         OLEDStringDraw (string, 0, 2);
     } else if (g_displayMode == YAW) {
         OLEDStringDraw ("Heli - Yaw", 0, 0);
-        int yaw_deg = yaw_hund_deg / 100;
-        int yaw_dec_deg = yaw_hund_deg >= 0 ? yaw_hund_deg % 100 : (-yaw_hund_deg) % 100;
+        int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
+        int yaw_dec_deg = abs(yaw_hund_deg) % 100;
         usnprintf (string, sizeof(string), "Yaw: %4d.%02d", yaw_deg, yaw_dec_deg);
         OLEDStringDraw (string, 0, 1);
     }

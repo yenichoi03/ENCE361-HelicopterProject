@@ -34,6 +34,7 @@
 #include "buttons4.h"
 #include "yaw.h"
 #include "display.h"
+#include "control.h"
 
 // Initialisation functions for the clock (incl. SysTick), ADC, display
 void initClock (void)
@@ -57,39 +58,41 @@ void initClock (void)
 
 
 int main(void)
- {
+{
 	initClock ();
     initAltitude();
 	initDisplay ();
     initButtons ();
     initYaw ();
 
+    initControl();
 
-    // Enable interrupts to the processor.
-    IntMasterEnable();
-    uint32_t utickCount = 0;
-
-
-	while (1)
-	{
-        updateButtons();
-
-        if (checkButton(UP) == PUSHED) {
-            // cycle through the display modes
-            nextDisplayMode();
-        }
-
-        if (checkButton(LEFT) == PUSHED) {
-            // reset the zero height value
-            ZeroHeightReset();
-        }
-
-        if (utickCount % 3 == 0) {
-            displayStatistics(getFilteredValue(), getCurrentValue(), getHeightPercentage(), getSampleCount(), getYawHundDeg());
-        }
-
-		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz
-        utickCount++;
-	}
+//
+//    // Enable interrupts to the processor.
+//    IntMasterEnable();
+//    uint32_t utickCount = 0;
+//
+//
+//	while (1)
+//	{
+//        updateButtons();
+//
+//        if (checkButton(UP) == PUSHED) {
+//            // cycle through the display modes
+//            nextDisplayMode();
+//        }
+//
+//        if (checkButton(LEFT) == PUSHED) {
+//            // reset the zero height value
+//            ZeroHeightReset();
+//        }
+//
+//        if (utickCount % 3 == 0) {
+//            displayStatistics(getFilteredValue(), getCurrentValue(), getHeightPercentage(), getSampleCount(), getYawHundDeg());
+//        }
+//
+//		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz
+//        utickCount++;
+//	}
 }
 

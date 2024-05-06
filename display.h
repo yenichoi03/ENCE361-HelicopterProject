@@ -12,7 +12,7 @@
 #define DISPLAY_H
 
 
-typedef enum displayMode {HEIGHT = 0, FILTERED, OFF, YAW} displayMode_t;
+typedef enum displayMode {HEIGHT = 0, FILTERED, YAW, OFF} displayMode_t;
 #define DISPLAY_MODES 4
 
 
