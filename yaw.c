@@ -53,6 +53,11 @@ int32_t getYawHundDeg(void)
     return yaw_hund_deg;
 }
 
+int32_t getYawRaw(void)
+{
+    return yaw;
+}
+
 void initYaw (void)
 {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);

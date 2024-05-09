@@ -50,7 +50,7 @@ int sign(int num) {
 
 
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
-void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, int yaw_hund_deg)
+void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle)
 {
     char string[17];  // 16 characters across the display
     static displayMode_t lastMode = OFF;
@@ -80,6 +80,12 @@ void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t height
         int yaw_dec_deg = abs(yaw_hund_deg) % 100;
         usnprintf (string, sizeof(string), "Yaw: %4d.%02d", yaw_deg, yaw_dec_deg);
         OLEDStringDraw (string, 0, 1);
+    } else if (g_displayMode == PID) {
+        OLEDStringDraw ("Heli - PID", 0, 0);
+        usnprintf (string, sizeof(string), "Main: %6d%%", main_duty_cycle);
+        OLEDStringDraw (string, 0, 1);
+        usnprintf (string, sizeof(string), "Tail: %6d%%", tail_duty_cycle);
+        OLEDStringDraw (string, 0, 2);
     }
 }
 

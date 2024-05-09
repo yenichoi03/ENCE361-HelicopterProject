@@ -16,12 +16,6 @@
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
 
-int16_t g_coefs[BUF_SIZE] = {-77, -75, -71, -66, -60, -52, -43, -32, -20, -7, 6, 21, 38, 55, 73, 92, 111,
-                             130, 150, 169, 189, 208, 227, 245, 262, 278, 294, 308, 320, 332, 341, 349, 356,
-                             360, 363, 364, 363, 360, 356, 349, 341, 332, 320, 308, 294, 278, 262, 245, 227,
-                             208, 189, 169, 150, 130, 111, 92, 73, 55, 38, 21, 6, -7, -20, -32, -43, -52,
-                             -60, -66, -71, -75};
-
 int16_t g_heightPercent = 0;
 int32_t g_zeroHeightValue = -1;
 int32_t g_filteredValue = 0;
