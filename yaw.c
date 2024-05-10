@@ -29,6 +29,7 @@
 // GLOBAL VARIABLES
 int32_t yaw = 0;
 int32_t yaw_hund_deg = 0;
+int32_t yaw_hund_deg_abs = 0;
 
 int16_t QDE[4][4] = {{0, -1, 1, 0},
                      {1, 0, 0, -1},
@@ -44,13 +45,18 @@ static void yawIntHandler(void){
       yaw += QDE[prev_pin_state][pin_state];
       prev_pin_state = pin_state;
 
-      yaw_hund_deg = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
-      yaw_hund_deg = sign(yaw_hund_deg) * ((abs(yaw_hund_deg) + 18000 ) % 36000 - 18000);
+      yaw_hund_deg_abs = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
+      yaw_hund_deg = sign(yaw_hund_deg_abs) * ((abs(yaw_hund_deg_abs) + 18000 ) % 36000 - 18000);
 }
 
 int32_t getYawHundDeg(void)
 {
     return yaw_hund_deg;
+}
+
+int32_t getYawHundDegAbs(void)
+{
+    return yaw_hund_deg_abs;
 }
 
 int32_t getYawRaw(void)

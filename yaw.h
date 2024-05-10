@@ -22,6 +22,8 @@ void initYaw (void);
 
 int getYawHundDeg(void);
 
+int getYawHundDegAbs(void);
+
 int getYawRaw(void);
 
 #endif

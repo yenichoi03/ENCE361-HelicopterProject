@@ -11,18 +11,11 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-
-typedef enum displayMode {HEIGHT = 0, FILTERED, YAW, PID, OFF} displayMode_t;
-#define DISPLAY_MODES 5
-
-
 // Initialises the display
 void initDisplay (void);
 
-void nextDisplayMode(void);
-
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
-void displayStatistics(uint16_t filteredVal, uint16_t currentVal, int16_t heightPercent, uint32_t count, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle);
+void displayStatistics(int alt_percent, int yaw_hund_deg, int alt_setpoint, int yaw_deg_setpoint, int tail_duty_cycle, int main_duty_cycle);
 
 #endif
 

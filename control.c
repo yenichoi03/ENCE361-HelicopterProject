@@ -15,23 +15,30 @@
 #define PWM_MAIN 0
 #define PWM_TAIL 1
 
-#define MAIN_SCALE 100
-
-#define DELTA_T 1
+#define SCALE 1000
 
 // MAIN
-const int Kp_main = 1;
-const int Ki_main = 1;
+const int Kp_main = 16500;
+const int Ki_main = 4500;
 const int Kd_main = 0;
 const int gravity_offset_pc = 33;
 
-const int Kp_tail = 1;
-const int Ki_tail = 1;
+const int Kp_tail = 4500;
+const int Ki_tail = 2000;
 const int Kd_tail = 0;
 const int tail_coupling_pc = 80;
 
 int main_duty_cycle;
 int tail_duty_cycle;
+
+static void setPWM(int duty_cycle, int PWM)
+{
+    if (PWM == PWM_MAIN) {
+        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_7, PWM_PERIOD * duty_cycle / 100);
+    } else if (PWM == PWM_TAIL) {
+        PWMPulseWidthSet(PWM1_BASE, PWM_OUT_5, PWM_PERIOD * duty_cycle / 100);
+    }
+}
 
 void initControl(void)
 {
@@ -72,6 +79,9 @@ void initControl(void)
        // Turn on the Output pins
        PWMOutputState(PWM0_BASE, PWM_OUT_7_BIT, true);
        PWMOutputState(PWM1_BASE, PWM_OUT_5_BIT, true);
+
+       setPWM(0, PWM_MAIN);
+       setPWM(0, PWM_TAIL);
 }
 
 int getMainDutyCycle()
@@ -84,14 +94,6 @@ int getTailDutyCycle()
     return tail_duty_cycle;
 }
 
-static void setPWM(int duty_cycle, int PWM)
-{
-    if (PWM == PWM_MAIN) {
-        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_7, PWM_PERIOD * duty_cycle / 100);
-    } else if (PWM == PWM_TAIL) {
-        PWMPulseWidthSet(PWM1_BASE, PWM_OUT_5, PWM_PERIOD * duty_cycle / 100);
-    }
-}
 
 static int clampDutyCycle(int duty_cycle)
 {
@@ -104,16 +106,16 @@ static int clampDutyCycle(int duty_cycle)
 }
 
 
-static int mainController (int altitude, int altitude_setpoint)
+static int mainController (int altitude, int altitude_setpoint, int time_delta)
 {
      static int I = 0;
      static int prev_error = 0;
-     int error = MAIN_SCALE * altitude_setpoint - MAIN_SCALE * altitude; // ~ 1 - 100
-     int P = Kp_main * error; // ~ 1 - 100
-     int dI = Ki_main * error * DELTA_T;
-     int D = Kd_main * (error - prev_error) / DELTA_T;
+     int error = SCALE * altitude_setpoint - SCALE * altitude;
+     int P = Kp_main * error;
+     int dI = Ki_main * error * time_delta / 10000;
+     int D = Kd_main * (error - prev_error) * 10000 / time_delta;
 
-     int control = (P + (I + dI) + D + gravity_offset_pc) / MAIN_SCALE;
+     int control = (P + (I + dI) + D ) / (SCALE * SCALE) + gravity_offset_pc;
      if (control < DUTY_CYCLE_MAX && control > DUTY_CYCLE_MIN) {
          I = (I + dI);
      }
@@ -124,36 +126,32 @@ static int mainController (int altitude, int altitude_setpoint)
      return duty_cycle;
 }
 
-static int tailController (int yaw, int yaw_setpoint, int main_output)
+static int tailController (int yaw, int yaw_setpoint, int main_output, int time_delta)
 {
-//     static int I = 0;
-//     static int prev_error = 0;
-//     int tail_error = yaw_setpoint - yaw;
-//     int P = Kp_tail * tail_error;
-//     int dI = Ki_tail * tail_error * DELTA_T;
-//     int D = Kd_tail * (tail_error - prev_error) / DELTA_T;
-//
-//     int control = P + (I + dI) + D;
-//     if (control < DUTY_CYCLE_MAX && control > DUTY_CYCLE_MIN) {
-//         I = (I + dI);
-//     }
-//
-//     prev_error = tail_error;
-//
-////     int tail_duty_cycle = clamp_duty_cycle(control + ((tail_coupling_pc * main_output) / 100));
-//     int tail_duty_cycle = clampDutyCycle(control);
-//
-//     return tail_duty_cycle;
-    return 3;
+    static int I = 0;
+    static int prev_error = 0;
+    int tail_error = yaw_setpoint * SCALE - yaw * SCALE;
+    int P = Kp_tail * tail_error;
+    int dI = Ki_tail * tail_error * time_delta / 10000;
+    int D = Kd_tail * (tail_error - prev_error) * 10000 / time_delta ;
+
+    int control = (P + (I + dI) + D) / (SCALE * SCALE) + ((tail_coupling_pc * main_output) / 100);
+    if (control < DUTY_CYCLE_MAX && control > DUTY_CYCLE_MIN) {
+        I = (I + dI);
+    }
+
+    prev_error = tail_error;
+
+    int tail_duty_cycle = clampDutyCycle(control);
+
+    return tail_duty_cycle;
 }
 
 
-
-
-void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint)
+void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta)
 {
-   main_duty_cycle = mainController(altitude, altitude_setpoint);
-   tail_duty_cycle = tailController(yaw, yaw_setpoint, main_duty_cycle);
+   main_duty_cycle = mainController(altitude, altitude_setpoint, time_delta);
+   tail_duty_cycle = tailController(yaw, yaw_setpoint, main_duty_cycle, time_delta);
    setPWM(main_duty_cycle, PWM_MAIN);
    setPWM(tail_duty_cycle, PWM_TAIL);
 }

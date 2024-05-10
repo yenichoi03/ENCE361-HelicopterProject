@@ -24,7 +24,7 @@
 
 void initControl(void);
 
-void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint);
+void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta);
 
 int getTailDutyCycle();
 

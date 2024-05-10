@@ -36,6 +36,14 @@
 #include "display.h"
 #include "control.h"
 
+#define ALT_MIN 0
+#define ALT_MAX 100
+
+#define PID_FREQ 480
+#define TIME_DELTA (10000 / PID_FREQ)
+
+#define WARMUP_SECONDS 4
+
 // Initialisation functions for the clock (incl. SysTick), ADC, display
 void initClock (void)
 {
@@ -55,8 +63,6 @@ void initClock (void)
     SysTickEnable();
 }
 
-
-
 int main(void)
 {
 	initClock ();
@@ -67,34 +73,46 @@ int main(void)
 
     initControl();
 
+    int alt_setpoint = 50;
+    int yaw_setpoint = 0; 
+    int yaw_deg_setpoint = 0;
+
     // Enable interrupts to the processor.
     IntMasterEnable();
-    uint32_t utickCount = 0;
+    uint64_t utickCount = 0;
 
-
-	while (1)
-	{
-	    if (utickCount > 300) {
-	        calculateControl(getHeightPercentage(), getYawRaw(), 50, 90);
+	while (1) {
+	    if (utickCount > PID_FREQ * WARMUP_SECONDS) {
+	        calculateControl(getHeightPercentage(), getYawHundDegAbs(), alt_setpoint, yaw_setpoint, TIME_DELTA);
 	    }
 
-        updateButtons();
+        if (utickCount % 5 == 0) {
+            updateButtons();
 
-        if (checkButton(UP) == PUSHED) {
-            // cycle through the display modes
-            nextDisplayMode();
+            if (checkButton(UP) == PUSHED) {
+                alt_setpoint += 10;
+                alt_setpoint = alt_setpoint > ALT_MAX ? ALT_MAX : alt_setpoint;
+            }
+
+            if (checkButton(DOWN) == PUSHED) {
+                alt_setpoint -= 10;
+                alt_setpoint = alt_setpoint < ALT_MIN ? ALT_MIN : alt_setpoint;
+            }
+
+            if (checkButton(LEFT) == PUSHED) {
+               yaw_setpoint += 15;
+           }
+
+           if (checkButton(RIGHT) == PUSHED) {
+               yaw_setpoint -= 15;
+           }
         }
 
-        if (checkButton(LEFT) == PUSHED) {
-            // reset the zero height value
-            ZeroHeightReset();
+        if (utickCount % 10 == 0) {
+            displayStatistics(getHeightPercentage(), getYawHundDegAbs(), alt_setpoint, yaw_setpoint, getTailDutyCycle(), getMainDutyCycle());
         }
 
-        if (utickCount % 3 == 0) {
-            displayStatistics(getFilteredValue(), getCurrentValue(), getHeightPercentage(), getSampleCount(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
-        }
-
-		SysCtlDelay (SysCtlClockGet() / 240);  // Update display at ~ 2 Hz
+		SysCtlDelay (SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz
         utickCount++;
 	}
 }
