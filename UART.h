@@ -1,5 +1,5 @@
-#ifndef ADC_H
-#define ADC_H
+#ifndef UART_H
+#define UART_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -21,13 +21,10 @@
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
 #include "circBufT.h"
+#include "yaw.h"
 
-void initControl(void);
+void initialiseUSB_UART();
 
-void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint);
-
-int getTailDutyCycle();
-
-int getMainDutyCycle();
+void UARTSend (char *pucBuffer);
 
 #endif
