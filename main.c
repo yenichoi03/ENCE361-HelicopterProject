@@ -35,6 +35,7 @@
 #include "yaw.h"
 #include "display.h"
 #include "control.h"
+#include "UART.h"
 
 #define ALT_MIN 0
 #define ALT_MAX 100
@@ -70,8 +71,8 @@ int main(void)
 	initDisplay ();
     initButtons ();
     initYaw ();
-
     initControl();
+    initialiseUSB_UART();
 
     int alt_setpoint = 50;
     int yaw_setpoint = 0; 
@@ -115,5 +116,9 @@ int main(void)
 		SysCtlDelay (SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz
         utickCount++;
 	}
+
+//	UARTSend("Yaw ");
+
+
 }
 
