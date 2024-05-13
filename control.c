@@ -23,8 +23,8 @@ const int Ki_main = 4500;
 const int Kd_main = 0;
 const int gravity_offset_pc = 33;
 
-const int Kp_tail = 4500;
-const int Ki_tail = 2000;
+const int Kp_tail = 16000;
+const int Ki_tail = 0;
 const int Kd_tail = 0;
 const int tail_coupling_pc = 80;
 
@@ -126,11 +126,12 @@ static int mainController (int altitude, int altitude_setpoint, int time_delta)
      return duty_cycle;
 }
 
-static int tailController (int yaw, int yaw_setpoint, int main_output, int time_delta)
+static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main_output, int time_delta)
 {
     static int I = 0;
     static int prev_error = 0;
-    int tail_error = yaw_setpoint * SCALE - yaw * SCALE;
+    int tail_error = yaw_hund_deg_setpoint * SCALE - yaw_hund_deg * SCALE;
+    tail_error = tail_error > 18000 * SCALE ? 36000 * SCALE - tail_error : tail_error;
     int P = Kp_tail * tail_error;
     int dI = Ki_tail * tail_error * time_delta / 10000;
     int D = Kd_tail * (tail_error - prev_error) * 10000 / time_delta ;

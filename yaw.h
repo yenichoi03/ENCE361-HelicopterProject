@@ -22,7 +22,7 @@ void initYaw (void);
 
 int getYawHundDeg(void);
 
-int getYawHundDegAbs(void);
+int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale);
 
 int getYawRaw(void);
 

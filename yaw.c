@@ -46,7 +46,7 @@ static void yawIntHandler(void){
       prev_pin_state = pin_state;
 
       yaw_hund_deg_abs = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
-      yaw_hund_deg = sign(yaw_hund_deg_abs) * ((abs(yaw_hund_deg_abs) + 18000 ) % 36000 - 18000);
+      yaw_hund_deg = getYawWrap(yaw_hund_deg_abs, 100);
 }
 
 int32_t getYawHundDeg(void)
@@ -54,10 +54,11 @@ int32_t getYawHundDeg(void)
     return yaw_hund_deg;
 }
 
-int32_t getYawHundDegAbs(void)
+int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale)
 {
-    return yaw_hund_deg_abs;
+    return sign(yaw_deg_abs) * ((abs(yaw_deg_abs) + (180 * scale)) % (360 * scale) - (180 * scale));
 }
+
 
 int32_t getYawRaw(void)
 {

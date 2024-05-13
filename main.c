@@ -43,7 +43,7 @@
 #define PID_FREQ 480
 #define TIME_DELTA (10000 / PID_FREQ)
 
-#define WARMUP_SECONDS 4
+#define WARMUP_SECONDS 2
 
 // Initialisation functions for the clock (incl. SysTick), ADC, display
 void initClock (void)
@@ -75,8 +75,8 @@ int main(void)
     initUSB_UART();
 
     int alt_setpoint = 50;
-    int yaw_setpoint = 0; 
-    int yaw_deg_setpoint = 0;
+    int yaw_setpoint = 0;
+    int yaw_setpoint_wrap = 0;
 
     // Enable interrupts to the processor.
     IntMasterEnable();
@@ -84,10 +84,10 @@ int main(void)
 
 	while (1) {
 	    if (utickCount > PID_FREQ * WARMUP_SECONDS) {
-	        calculateControl(getHeightPercentage(), getYawHundDegAbs(), alt_setpoint, yaw_setpoint, TIME_DELTA);
+	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap * 100, TIME_DELTA);
 	    }
 
-        if (utickCount % 5 == 0) {
+        if (utickCount % 10 == 0) {
             updateButtons();
 
             if (checkButton(UP) == PUSHED) {
@@ -102,17 +102,18 @@ int main(void)
 
             if (checkButton(LEFT) == PUSHED) {
                yaw_setpoint += 15;
+               yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
            }
 
            if (checkButton(RIGHT) == PUSHED) {
                yaw_setpoint -= 15;
+               yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
            }
         }
-
-        if (utickCount % 10 == 0) {
-            displayStatistics(getHeightPercentage(), getYawHundDegAbs(), alt_setpoint, yaw_setpoint, getTailDutyCycle(), getMainDutyCycle());
+        
+        if (utickCount % 20 == 0) {
+            displayStatistics(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
             helicopterInfo(getHeightPercentage(), getYawHundDegAbs(), getTailDutyCycle(), getMainDutyCycle());
-
         }
 
 
