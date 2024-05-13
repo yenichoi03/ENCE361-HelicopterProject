@@ -39,7 +39,7 @@ int16_t QDE[4][4] = {{0, -1, 1, 0},
                      {-1, 0, 0, 1},
                      {0, 1, -1, 0}};
 
-// Quadrature encoder
+// Quadrature encoder interrupt
 static void yawIntHandler(void) {
 
       static int prev_pin_state = 0;
@@ -63,12 +63,13 @@ int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale) {
     return sign(yaw_deg_abs) * ((abs(yaw_deg_abs) + (180 * scale)) % (360 * scale) - (180 * scale));
 }
 
-
+// Retrieves the raw data of yaw
 int32_t getYawRaw(void) {
 
     return yaw;
 }
 
+// Initialises GPIO ports and pins to read yaw
 void initYaw (void) {
 
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
