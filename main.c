@@ -115,6 +115,8 @@ int main(void)
 
         }
 
+
+
 		SysCtlDelay (SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz
         utickCount++;
 	}

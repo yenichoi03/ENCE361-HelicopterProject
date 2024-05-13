@@ -48,7 +48,7 @@ void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int 
     int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
     int yaw_dec_deg = (abs(yaw_hund_deg) % 100) / 10;
 
-    char string[50];
+    char string[150];
     usnprintf(string, sizeof(string), "Altitude: %4d%%    Yaw: %4d.%01d   Main Duty Cycle: %6d%%    Tail Duty Cycle: %6d%%", alt_percent, yaw_deg, yaw_dec_deg, main_duty_cycle, tail_duty_cycle);
     UARTSend(string);
 }
