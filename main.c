@@ -1,21 +1,18 @@
 //*****************************************************************************
 //
-// ADCdemo1.c - Simple interrupt driven program which samples with AIN0
+// main.c - Main code for helicopter project
 //
-// Author:  P.J. Bones	UCECE
-// Last modified:	8.2.2018
+// Author:  ych227, sli219
+//
 //
 //*****************************************************************************
-// Based on the 'convert' series from 2016
-//*****************************************************************************
+
 
 #include <altitude.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
-
-
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "driverlib/adc.h"
@@ -39,48 +36,38 @@
 
 #define ALT_MIN 0
 #define ALT_MAX 100
-
 #define PID_FREQ 480
 #define TIME_DELTA (10000 / PID_FREQ)
-
 #define WARMUP_SECONDS 2
 
-// Initialisation functions for the clock (incl. SysTick), ADC, display
-void initClock (void)
-{
-    // Set the clock rate to 20 MHz
-    SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
-                   SYSCTL_XTAL_16MHZ);
-    //
-    // Set up the period for the SysTick timer.  The SysTick timer period is
-    // set as a function of the system clock.
-    SysTickPeriodSet(SysCtlClockGet() / SAMPLE_RATE_HZ);
-    //
-    // Register the interrupt handler
-    SysTickIntRegister(SysTickIntHandler);
-    //
-    // Enable interrupt and device
-    SysTickIntEnable();
+// Initialisation functions for the clock (incl. SysTick), ADC, display.
+void initClock (void) {
+
+    SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);   // Set the clock rate to 20 MHz.
+    SysTickPeriodSet(SysCtlClockGet() / SAMPLE_RATE_HZ);                                        // Set up the period for the SysTick timer.
+    SysTickIntRegister(SysTickIntHandler);                                                      // Register the interrupt handler.
+    SysTickIntEnable();                                                                         // Enable interrupt and device.
     SysTickEnable();
 }
 
-int main(void)
-{
-	initClock ();
+
+int main(void) {
+
+    // Initialisations.
+	initClock();
     initAltitude();
-	initDisplay ();
-    initButtons ();
-    initYaw ();
+	initDisplay();
+    initButtons();
+    initYaw();
     initControl();
     initUSB_UART();
 
+    IntMasterEnable();              // Enable interrupts to the processor.
     int alt_setpoint = 50;
     int yaw_setpoint = 0;
     int yaw_setpoint_wrap = 0;
-
-    // Enable interrupts to the processor.
-    IntMasterEnable();
     uint64_t utickCount = 0;
+
 
 	while (1) {
 	    if (utickCount > PID_FREQ * WARMUP_SECONDS) {
@@ -88,7 +75,7 @@ int main(void)
 	    }
 
         if (utickCount % 10 == 0) {
-            updateButtons();
+            updateButtons();        // Checks for button press.
 
             if (checkButton(UP) == PUSHED) {
                 alt_setpoint += 10;
@@ -113,17 +100,16 @@ int main(void)
         
         if (utickCount % 20 == 0) {
             displayStatistics(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
+        }
+
+        if (utickCount % 20 == 1) {
             helicopterInfo(getHeightPercentage(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
         }
 
 
-
-		SysCtlDelay (SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz
+		SysCtlDelay(SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz
         utickCount++;
 	}
-
-//	UARTSend("Yaw ");
-
 
 }
 

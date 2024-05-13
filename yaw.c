@@ -1,18 +1,21 @@
-/**  @file   ball.c
-     @author Yeni Choi, Steven Little
-     @date   14 Oct 2023
-     @brief  gives  reliable continuous yaw monitoring with sub-degree precision.
+//*****************************************************************************
+//
+// yaw.c - gives  reliable continuous yaw monitoring with sub-degree precision.
+//
+//         The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
+//         When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
+//
+// Author:  ych227, sli219
+//
+//
+//*****************************************************************************
 
-             The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
-             When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
 
-*/
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "driverlib/adc.h"
@@ -37,7 +40,8 @@ int16_t QDE[4][4] = {{0, -1, 1, 0},
                      {0, 1, -1, 0}};
 
 // Quadrature encoder
-static void yawIntHandler(void){
+static void yawIntHandler(void) {
+
       static int prev_pin_state = 0;
       int pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
       GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
@@ -49,24 +53,24 @@ static void yawIntHandler(void){
       yaw_hund_deg = getYawWrap(yaw_hund_deg_abs, 100);
 }
 
-int32_t getYawHundDeg(void)
-{
+int32_t getYawHundDeg(void) {
+
     return yaw_hund_deg;
 }
 
-int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale)
-{
+int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale) {
+
     return sign(yaw_deg_abs) * ((abs(yaw_deg_abs) + (180 * scale)) % (360 * scale) - (180 * scale));
 }
 
 
-int32_t getYawRaw(void)
-{
+int32_t getYawRaw(void) {
+
     return yaw;
 }
 
-void initYaw (void)
-{
+void initYaw (void) {
+
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, INT_PINS);
     GPIOPadConfigSet(GPIO_PORTB_BASE, INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
