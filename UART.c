@@ -27,11 +27,11 @@ char statusStr[MAX_STR_LEN + 1];
 volatile uint8_t slowTick = false;
 
 
-void initialiseUSB_UART()
+void initUSB_UART()
 {
     // Enable GPIO port A which is used for UART0 pins.
-    SysCtlPeripheralEnable(UART_USB_PERIPH_UART0);
-    SysCtlPeripheralEnable(UART_USB_PERIPH_GPIOA);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 
     // Select the alternate (UART) function for these pins.
     GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
@@ -41,6 +41,16 @@ void initialiseUSB_UART()
     UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), BAUD_RATE, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
     UARTFIFOEnable(UART0_BASE);
     UARTEnable(UART0_BASE);
+}
+
+void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle) {
+
+    int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
+    int yaw_dec_deg = (abs(yaw_hund_deg) % 100) / 10;
+
+    char string[50];
+    usnprintf(string, sizeof(string), "Altitude: %4d%%    Yaw: %4d.%01d   Main Duty Cycle: %6d%%    Tail Duty Cycle: %6d%%", alt_percent, yaw_deg, yaw_dec_deg, main_duty_cycle, tail_duty_cycle);
+    UARTSend(string);
 }
 
 void UARTSend (char *pucBuffer)
@@ -56,4 +66,4 @@ void UARTSend (char *pucBuffer)
     }
 }
 
-UARTCharPutNonBlocking();
+

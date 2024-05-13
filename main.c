@@ -72,7 +72,7 @@ int main(void)
     initButtons ();
     initYaw ();
     initControl();
-    initialiseUSB_UART();
+    initUSB_UART();
 
     int alt_setpoint = 50;
     int yaw_setpoint = 0; 
@@ -111,6 +111,8 @@ int main(void)
 
         if (utickCount % 10 == 0) {
             displayStatistics(getHeightPercentage(), getYawHundDegAbs(), alt_setpoint, yaw_setpoint, getTailDutyCycle(), getMainDutyCycle());
+            helicopterInfo(getHeightPercentage(), getYawHundDegAbs(), getTailDutyCycle(), getMainDutyCycle());
+
         }
 
 		SysCtlDelay (SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz

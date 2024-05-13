@@ -23,7 +23,9 @@
 #include "circBufT.h"
 #include "yaw.h"
 
-void initialiseUSB_UART();
+void initUSB_UART();
+
+void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle);
 
 void UARTSend (char *pucBuffer);
 
