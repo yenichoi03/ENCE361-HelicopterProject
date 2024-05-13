@@ -113,7 +113,7 @@ int main(void)
         
         if (utickCount % 20 == 0) {
             displayStatistics(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
-            helicopterInfo(getHeightPercentage(), getYawHundDegAbs(), getTailDutyCycle(), getMainDutyCycle());
+            helicopterInfo(getHeightPercentage(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
         }
 
 
