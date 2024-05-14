@@ -129,7 +129,7 @@ static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main
     static int I = 0;
     static int prev_error = 0;
     int tail_error = yaw_hund_deg_setpoint * SCALE - yaw_hund_deg * SCALE;
-    tail_error = tail_error > 18000 * SCALE ? 36000 * SCALE - tail_error : tail_error;
+    tail_error = tail_error > (18000 * SCALE) ? (36000 * SCALE) - tail_error : tail_error;
     int P = Kp_tail * tail_error;
     int dI = Ki_tail * tail_error * time_delta / 10000;
     int D = Kd_tail * (tail_error - prev_error) * 10000 / time_delta ;

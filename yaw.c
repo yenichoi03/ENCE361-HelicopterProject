@@ -59,7 +59,6 @@ int32_t getYawHundDeg(void) {
 }
 
 int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale) {
-
     return sign(yaw_deg_abs) * ((abs(yaw_deg_abs) + (180 * scale)) % (360 * scale) - (180 * scale));
 }
 
