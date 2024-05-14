@@ -1,15 +1,39 @@
-/**  @file   yaw.c
-     @author Yeni Choi, Steven Little
-     @date   14 Oct 2023
-     @brief  gives  reliable continuous yaw monitoring with sub-degree precision.
-
-             The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
-             When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
-
-*/
+//*****************************************************************************
+//
+// display.c - Displays helicopter statistics on OLED board.
+//
+//             The helicopter altitude should be displayed as a percentage on the Orbit OLED board. 100 % should indicate maximum altitude, 0 % should
+//             indicate minimum altitude (when the helicopter has landed).
+//
+// Author:  ych227, sli219
+//
+//
+//*****************************************************************************
 
 #ifndef DISPLAY_H
 #define DISPLAY_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/uart.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
 
 // Initialises the display
 void initDisplay (void);

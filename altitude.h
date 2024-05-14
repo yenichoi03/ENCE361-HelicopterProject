@@ -1,12 +1,14 @@
-/**  @file   ADC.c
-     @author Yeni Choi, Steven Little
-     @date   14 Oct 2023
-     @brief  gives  reliable continuous yaw monitoring with sub-degree precision.
-
-             The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
-             When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
-
-*/
+//*****************************************************************************
+//
+// altitude.c - Calculates altitude from ADC
+//
+//         The samples (ADC outputs) are stored continually in a circular buffer. At regular intervals the mean value of the samples in the buffer are computed.
+//
+//
+// Author:  ych227, sli219
+//
+//
+//*****************************************************************************
 
 #ifndef ADC_H
 #define ADC_H
@@ -45,9 +47,13 @@ void initAltitude (void);
 void SysTickIntHandler(void);
 
 uint32_t getFilteredValue(void);
+
 uint32_t getCurrentValue(void);
+
 int16_t getHeightPercentage(void);
+
 int16_t getSampleCount(void);
+
 void ZeroHeightReset(void);
 
 

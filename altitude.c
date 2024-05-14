@@ -1,12 +1,15 @@
-/**  @file   ball.c
-     @author Yeni Choi, Steven Little
-     @date   14 Oct 2023
-     @brief  gives  reliable continuous yaw monitoring with sub-degree precision.
+//*****************************************************************************
+//
+// altitude.c - Calculates altitude from ADC
+//
+//         The samples (ADC outputs) are stored continually in a circular buffer. At regular intervals the mean value of the samples in the buffer are computed.
+//
+//
+// Author:  ych227, sli219
+//
+//
+//*****************************************************************************
 
-             The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
-             When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
-
-*/
 #include <altitude.h>
 
 #define PI 3.14159265358979323846
@@ -60,25 +63,22 @@ void ZeroHeightReset(void)
     g_zeroHeightValue = -1;
 }
 
-static void initADC (void)
+static void initADC(void)
 {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
     ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
-    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH9 | ADC_CTL_IE |
-                             ADC_CTL_END);
-
+    ADCSequenceStepConfigure(ADC0_BASE, 3, 0, ADC_CTL_CH9 | ADC_CTL_IE | ADC_CTL_END);
     ADCSequenceEnable(ADC0_BASE, 3);
     ADCIntRegister (ADC0_BASE, 3, ADCIntHandler);
     ADCIntEnable(ADC0_BASE, 3);
 }
 
+
 void initAltitude (void)
 {
     initCircBuf (&g_inBuffer, BUF_SIZE);
-
     initADC();
 }
-
 
 
 // The interrupt handler for the for SysTick interrupt.
@@ -96,15 +96,18 @@ uint32_t getCurrentValue(void)
     return readCircBuf(&g_inBuffer, false);
 }
 
+
 uint32_t getFilteredValue(void)
 {
     return g_filteredValue;
 }
 
+
 int16_t getHeightPercentage(void)
 {
     return g_heightPercent;
 }
+
 
 int16_t getSampleCount(void)
 {

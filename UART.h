@@ -1,3 +1,17 @@
+//*****************************************************************************
+//
+// UART.c - Code for UART communications
+//
+//          Information on the status of the helicopter should be transmitted via a serial link from UART0 at 9600 baud, with 1 stop bit and no parity bit
+//          in each transmitted byte. Status information should include the desired and actual yaw (in degrees), the desired and actual altitude (as a
+//          percentage of the maximum altitude), the duty cycle of each of the PWM signals controlling the rotors (%, with 0 meaning off) Updates should be
+//          transmitted at regular intervals (no fewer than 4 updates per second).
+//
+// Author:  ych227, sli219
+//
+//
+//*****************************************************************************
+
 #ifndef UART_H
 #define UART_H
 
@@ -6,7 +20,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "driverlib/adc.h"

@@ -1,3 +1,14 @@
+//*****************************************************************************
+//
+// contorl.c - Sets the PWM and PID control for helicopter
+//
+//             The frequency of the PWM signals should be in the range from 150 Hz to 300 Hz.
+//
+// Author:  ych227, sli219
+//
+//
+//*****************************************************************************
+
 #ifndef ADC_H
 #define ADC_H
 

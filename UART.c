@@ -24,6 +24,7 @@
 char statusStr[MAX_STR_LEN + 1];
 volatile uint8_t slowTick = false;
 
+
 // Initialisations for UART communications from port A and UART0 pins
 void initUSB_UART() {
 
@@ -38,6 +39,7 @@ void initUSB_UART() {
     UARTFIFOEnable(UART0_BASE);
     UARTEnable(UART0_BASE);
 }
+
 
 // Compiles helicopter altitude, yaw, main motor duty cycle and tail motor duty cycle and sends informations through UART transmission.
 void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle) {

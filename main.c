@@ -36,12 +36,13 @@
 
 #define ALT_MIN 0
 #define ALT_MAX 100
-#define PID_FREQ 480
+#define PID_FREQ 200
 #define TIME_DELTA (10000 / PID_FREQ)
-#define WARMUP_SECONDS 2
+#define WARMUP_SECONDS 1
 
 // Initialisation functions for the clock (incl. SysTick), ADC, display.
-void initClock (void) {
+void initClock (void)
+{
 
     SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);   // Set the clock rate to 20 MHz.
     SysTickPeriodSet(SysCtlClockGet() / SAMPLE_RATE_HZ);                                        // Set up the period for the SysTick timer.
@@ -51,8 +52,8 @@ void initClock (void) {
 }
 
 
-int main(void) {
-
+int main(void)
+{
     // Initialisations.
 	initClock();
     initAltitude();
@@ -74,7 +75,7 @@ int main(void) {
 	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap * 100, TIME_DELTA);
 	    }
 
-        if (utickCount % 10 == 0) {
+        if (utickCount % 2 == 0) {
             updateButtons();        // Checks for button press.
 
             if (checkButton(UP) == PUSHED) {
@@ -88,21 +89,21 @@ int main(void) {
             }
 
             if (checkButton(LEFT) == PUSHED) {
-               yaw_setpoint += 15;
+               yaw_setpoint -= 15;
                yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
            }
 
            if (checkButton(RIGHT) == PUSHED) {
-               yaw_setpoint -= 15;
+               yaw_setpoint += 15;
                yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
            }
         }
         
-        if (utickCount % 20 == 0) {
+        if (utickCount % 5 == 0) {
             displayStatistics(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
         }
 
-        if (utickCount % 20 == 1) {
+        if (utickCount % 200 == 1) {
             helicopterInfo(getHeightPercentage(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
         }
 
