@@ -71,9 +71,7 @@ int main(void)
 
 
 	while (1) {
-	    if (utickCount > PID_FREQ * WARMUP_SECONDS) {
 	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap * 100, TIME_DELTA);
-	    }
 
         if (utickCount % 2 == 0) {
             updateButtons();        // Checks for button press.

@@ -23,7 +23,7 @@
 // GLOBAL VARIABLES
 char statusStr[MAX_STR_LEN + 1];
 volatile uint8_t slowTick = false;
-
+char string[150];
 
 // Initialisations for UART communications from port A and UART0 pins
 void initUSB_UART() {
@@ -43,22 +43,16 @@ void initUSB_UART() {
 
 // Compiles helicopter altitude, yaw, main motor duty cycle and tail motor duty cycle and sends informations through UART transmission.
 void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle) {
+    static char* pucBuffer = NULL;
 
     int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
     int yaw_dec_deg = (abs(yaw_hund_deg) % 100) / 10;
 
-    char string[150];
-    usnprintf(string, sizeof(string), "Altitude: %2d%% Yaw: %2d.%01d Main Duty Cycle: %3d%% Tail Duty Cycle: %3d%%\n", alt_percent, yaw_deg, yaw_dec_deg, main_duty_cycle, tail_duty_cycle);
-    UARTSend(string);
-}
-
-
-void UARTSend(char *pucBuffer) {
-
-    while(*pucBuffer) {
-        UARTCharPut(UART0_BASE, *pucBuffer);        // Write the next character to the UART Tx FIFO.
+    if (pucBuffer == NULL || *pucBuffer == 0) {
+        usnprintf(string, sizeof(string), "Altitude: %2d%% Yaw: %2d.%01d Main Duty Cycle: %3d%% Tail Duty Cycle: %3d%%\r\n", alt_percent, yaw_deg, yaw_dec_deg, main_duty_cycle, tail_duty_cycle);
+        pucBuffer = string;
+    } else {
+        UARTCharPut(UART0_BASE, *pucBuffer);
         pucBuffer++;
     }
 }
-
-
