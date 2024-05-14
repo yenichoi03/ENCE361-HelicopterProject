@@ -28,7 +28,8 @@ static void yawIntHandler(void)
 {
 
       static int prev_pin_state = 0;
-      int pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
+      int8_t pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
+
       GPIOIntClear(GPIO_PORTB_BASE, INT_PINS);
 
       yaw += QDE[prev_pin_state][pin_state];
@@ -54,6 +55,39 @@ int32_t getYawRaw(void)
     return yaw;
 }
 
+
+//int32_t yawReference(int32_t yaw_deg)
+//{
+//    uint32_t wrapped_yaw = yaw_deg;
+//
+//    if (abs(yaw_deg) > 180) {
+//        if yaw_deg < 0 {
+//            // Negative yaw
+//            wrapped_yaw = ((yaw_deg % 180) + 180);
+//        } else {
+//            //Positive yaw
+//            wrapped_yaw = ((yaw_deg % 180) - 180);
+//        }
+//    }
+//    return wrapped_yaw;
+//}
+
+int32_t getReferencePosition(int32_t yaw_hund_deg)
+{
+    int8_t pin_reference_state = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
+    bool reference_flag = false;
+
+    int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
+
+    if (pin_reference_state == 0 && reference_flag == false) {
+        yaw_deg += 1;
+    } elseif (pin_reference_state != 0) {
+        reference_flag = true;
+    }
+
+    return yaw_deg;
+}
+
 // Initialises GPIO ports and pins to read yaw
 void initYaw (void)
 {
@@ -63,5 +97,12 @@ void initYaw (void)
     GPIOIntTypeSet(GPIO_PORTB_BASE, INT_PINS, GPIO_BOTH_EDGES);
     GPIOIntRegister(GPIO_PORTB_BASE, yawIntHandler);
     GPIOIntEnable(GPIO_PORTB_BASE, INT_PINS);
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_4);
+    GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);  //don't know about this
+    GPIOIntRegister(GPIO_PORTC_BASE, yawIntHandler)
+    GPIOIntEnable(GPIO_PORTC_BASE, GPIO_PIN_4);
+
 }
 
