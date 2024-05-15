@@ -9,8 +9,8 @@
 //
 //*****************************************************************************
 
-#ifndef ADC_H
-#define ADC_H
+#ifndef CONTROL_H
+#define CONTROL_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -33,11 +33,22 @@
 #include "utils/ustdlib.h"
 #include "circBufT.h"
 
+typedef struct {
+    int P;
+    int I;
+    int D;
+    int error;
+} control_terms_t;
+
 void initControl(void);
 
 void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta);
 
+control_terms_t getControlTerms(void);
+
 int getTailDutyCycle();
+
+int getTailError();
 
 int getMainDutyCycle();
 

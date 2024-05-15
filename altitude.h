@@ -10,8 +10,8 @@
 //
 //*****************************************************************************
 
-#ifndef ADC_H
-#define ADC_H
+#ifndef ALTITUDE_H
+#define ALTITUDE_H
 
 #include <stdint.h>
 #include <stdbool.h>

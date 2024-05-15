@@ -14,7 +14,6 @@
 
 #define PI 3.14159265358979323846
 
-
 // Global variables
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
@@ -49,7 +48,7 @@ static void ADCIntHandler(void)
         if (g_zeroHeightValue == -1) {
             g_zeroHeightValue = sum;
         }
-        g_heightPercent = (g_zeroHeightValue - sum) * 100 / ADC_STEPS_PER_V;
+        g_heightPercent = (g_zeroHeightValue - sum) * 100 * 100 / ADC_STEPS_PER_V;
     }
 
     g_filteredValue = sum;
@@ -81,10 +80,8 @@ void initAltitude (void)
 }
 
 
-// The interrupt handler for the for SysTick interrupt.
-void SysTickIntHandler(void)
+void triggerADC(void)
 {
-    // Initiate a conversion
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
 }

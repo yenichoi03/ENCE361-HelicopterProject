@@ -42,14 +42,15 @@ void initUSB_UART() {
 
 
 // Compiles helicopter altitude, yaw, main motor duty cycle and tail motor duty cycle and sends informations through UART transmission.
-void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle) {
+void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle, control_terms_t control_terms) {
     static char* pucBuffer = NULL;
 
     int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
     int yaw_dec_deg = (abs(yaw_hund_deg) % 100) / 10;
 
     if (pucBuffer == NULL || *pucBuffer == 0) {
-        usnprintf(string, sizeof(string), "Altitude: %2d%% Yaw: %2d.%01d Main Duty Cycle: %3d%% Tail Duty Cycle: %3d%%\r\n", alt_percent, yaw_deg, yaw_dec_deg, main_duty_cycle, tail_duty_cycle);
+//        usnprintf(string, sizeof(string), "Alt: %2d, Yaw: %2d, Main_Duty: %3d, Tail_Duty: %3d\r\n", alt_percent, yaw_deg, main_duty_cycle, tail_duty_cycle);
+        usnprintf(string, sizeof(string), "Alt:%d,Yaw:%d,Main_DC:%d,Tail_DC:%d,P:%d,I:%d,Err:%d\r\n", alt_percent, yaw_deg, main_duty_cycle, tail_duty_cycle, control_terms.P / 1000000, control_terms.I / 1000000, control_terms.error / (1000 * 100));
         pucBuffer = string;
     } else {
         UARTCharPut(UART0_BASE, *pucBuffer);
