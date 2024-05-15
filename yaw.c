@@ -23,10 +23,18 @@ int16_t QDE[4][4] = {{0, -1, 1, 0},
                      {-1, 0, 0, 1},
                      {0, 1, -1, 0}};
 
-// Quadrature encoder interrupt
-static void yawIntHandler(void)
-{
 
+static void referenceIntHandler(void)
+{
+    int8_t pin_reference_state = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
+
+    getReferencePosition(yaw_hund_deg);
+    GPIOIntClear(GPIO_PORTC_BASE, GPIO_PIN_4);
+}
+
+// Quadrature encoder interrupt
+static void yawIntHandler(pin_reference_state)
+{
       static int prev_pin_state = 0;
       int8_t pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
 
@@ -37,6 +45,7 @@ static void yawIntHandler(void)
 
       yaw_hund_deg_abs = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
       yaw_hund_deg = getYawWrap(yaw_hund_deg_abs, 100);
+
 }
 
 int32_t getYawHundDeg(void)
@@ -74,15 +83,27 @@ int32_t getYawRaw(void)
 
 int32_t getReferencePosition(int32_t yaw_hund_deg)
 {
+    int states = 1;
     int8_t pin_reference_state = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
-    bool reference_flag = false;
-
     int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
 
-    if (pin_reference_state == 0 && reference_flag == false) {
-        yaw_deg += 1;
-    } elseif (pin_reference_state != 0) {
-        reference_flag = true;
+    if (pin_reference_state != 0) {
+        return yaw_deg
+    } else {
+        while (states < 3) {
+            if (pin_reference_state = 0) {
+                yaw_deg += 120;
+                state += 1;
+                //put some interrupt here
+            } else {
+                break;
+            }
+        }
+        return yaw_deg;
+    }
+
+    elseif (pin_reference_state != 0) {
+
     }
 
     return yaw_deg;
@@ -100,8 +121,9 @@ void initYaw (void)
 
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
     GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_4);
-    GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);  //don't know about this
-    GPIOIntRegister(GPIO_PORTC_BASE, yawIntHandler)
+    GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD);
+    GPIOIntTypeSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_FALLING_EDGE);
+    GPIOIntRegister(GPIO_PORTC_BASE, referenceIntHandler);
     GPIOIntEnable(GPIO_PORTC_BASE, GPIO_PIN_4);
 
 }
