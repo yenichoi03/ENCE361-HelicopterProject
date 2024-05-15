@@ -43,8 +43,7 @@
 
 void initAltitude (void);
 
-// The interrupt handler for the for SysTick interrupt.
-void SysTickIntHandler(void);
+void triggerADC(void);
 
 uint32_t getFilteredValue(void);
 
