@@ -18,16 +18,18 @@
 #define PWM_TAIL 1
 #define SCALE 1000
 
+#define TAIL_I_MAX 3
+
 // Controller coefficients for main motor
 const int Kp_main = 20;
-const int Ki_main = 5;
+const int Ki_main = 20;
 const int Kd_main = 0;
 const int gravity_offset_pc = 33;
 
 // Controller coefficients for tail motor
-const int Kp_tail = 20;
-const int Ki_tail = 100;
-const int Kd_tail = 20;
+const int Kp_tail = 80;
+const int Ki_tail = 10;
+const int Kd_tail = 0;
 const int tail_coupling_pc = 80;
 
 int main_duty_cycle;
@@ -69,10 +71,6 @@ void initControl(void)
        PWMGenPeriodSet(PWM0_BASE, PWM_GEN_3, PWM_PERIOD);
        PWMGenPeriodSet(PWM1_BASE, PWM_GEN_2, PWM_PERIOD);
 
-       //Set PWM duty-50% (Period /2)
-       PWMPulseWidthSet(PWM0_BASE, PWM_OUT_7, PWM_PERIOD / 2);
-       PWMPulseWidthSet(PWM1_BASE, PWM_OUT_5, PWM_PERIOD / 2);
-
        // Enable the PWM generator
        PWMGenEnable(PWM0_BASE, PWM_GEN_3);
        PWMGenEnable(PWM1_BASE, PWM_GEN_2);
@@ -98,7 +96,7 @@ int getTailDutyCycle(void)
 
 control_terms_t getControlTerms(void)
 {
-    return tail_terms;
+    return main_terms;
 }
 
 static int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale)
@@ -144,14 +142,19 @@ static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main
     int tail_dError = getYawWrap(prev_yaw * SCALE - yaw_hund_deg * SCALE, 100 * SCALE);
     tail_terms.D = Kd_tail * (tail_dError) * 10000 / time_delta;
 
-    int control = (tail_terms.P + (tail_terms.I + tail_dI) + tail_terms.D) / (SCALE * SCALE) + ((tail_coupling_pc * main_output) / 100);
+    tail_terms.I = (tail_terms.I + tail_dI);
+    if (tail_terms.I > TAIL_I_MAX * SCALE * SCALE) {
+        tail_terms.I = TAIL_I_MAX * SCALE * SCALE;
+    } else if (tail_terms.I < -1 * TAIL_I_MAX * SCALE * SCALE) {
+        tail_terms.I = -1 * TAIL_I_MAX * SCALE * SCALE;
+    }
+
+    int control = (tail_terms.P + tail_terms.I + tail_terms.D) / (SCALE * SCALE) + ((tail_coupling_pc * main_output) / 100);
 
     if (control > DUTY_CYCLE_MAX) {
         control = DUTY_CYCLE_MAX;
     } else if (control < DUTY_CYCLE_MIN) {
         control = DUTY_CYCLE_MIN;
-    } else {
-        tail_terms.I = (tail_terms.I + tail_dI);
     }
 
     prev_yaw = yaw_hund_deg;
