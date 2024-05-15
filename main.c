@@ -36,16 +36,47 @@
 
 #define ALT_MIN 0
 #define ALT_MAX 100
+
+#define SCHEDULE_FREQ 1000
 #define PID_FREQ 200
+#define BUTTONS_FREQ 10
+#define DISPLAY_FREQ 10
+#define UART_FREQ 200
+
 #define TIME_DELTA (10000 / PID_FREQ)
-#define WARMUP_SECONDS 1
+
+uint64_t schedule_ticks = 0;
+
+bool run_pid = false;
+bool run_buttons = false;
+bool run_display = false;
+bool run_uart = false;
+
+void SysTickIntHandler(void)
+{
+    if (schedule_ticks % (1000 / SAMPLE_RATE_HZ) == 0) {
+        triggerADC(); // preemptive
+    }
+    if (schedule_ticks % (1000 / PID_FREQ) == 1) {
+        run_pid = true;
+    }
+    if (schedule_ticks % (1000 / DISPLAY_FREQ) == 2) {
+        run_display = true;
+    }
+    if (schedule_ticks % (1000 / BUTTONS_FREQ) == 3) {
+        run_buttons = true;
+    }
+    if (schedule_ticks % (1000 / UART_FREQ) == 4) {
+        run_uart = true;
+    }
+    schedule_ticks++;
+}
 
 // Initialisation functions for the clock (incl. SysTick), ADC, display.
 void initClock (void)
 {
-
     SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);   // Set the clock rate to 20 MHz.
-    SysTickPeriodSet(SysCtlClockGet() / SAMPLE_RATE_HZ);                                        // Set up the period for the SysTick timer.
+    SysTickPeriodSet(SysCtlClockGet() / SCHEDULE_FREQ);                                        // Set up the period for the SysTick timer.
     SysTickIntRegister(SysTickIntHandler);                                                      // Register the interrupt handler.
     SysTickIntEnable();                                                                         // Enable interrupt and device.
     SysTickEnable();
@@ -63,17 +94,17 @@ int main(void)
     initControl();
     initUSB_UART();
 
-    IntMasterEnable();              // Enable interrupts to the processor.
+    IntMasterEnable();
     int alt_setpoint = 50;
     int yaw_setpoint = 0;
     int yaw_setpoint_wrap = 0;
     uint64_t utickCount = 0;
 
-
 	while (1) {
-	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap * 100, TIME_DELTA);
-
-        if (utickCount % 2 == 0) {
+	    if (run_pid) {
+	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint * 100, yaw_setpoint_wrap * 100, TIME_DELTA);
+	        run_pid = false;
+	    } else if (run_buttons) {
             updateButtons();        // Checks for button press.
 
             if (checkButton(UP) == PUSHED) {
@@ -95,18 +126,16 @@ int main(void)
                yaw_setpoint += 15;
                yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
            }
-        }
-        
-        if (utickCount % 5 == 0) {
-            displayStatistics(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
+
+           run_buttons = false;
+        } else if (run_display) {
+            displayStatistics(getHeightPercentage() / 100, getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
+            run_display = false;
+        } else if (run_uart) {
+            helicopterInfo(getHeightPercentage() / 100, getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle(), getControlTerms());
+            run_uart = false;
         }
 
-        if (utickCount % 200 == 1) {
-            helicopterInfo(getHeightPercentage(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
-        }
-
-
-		SysCtlDelay(SysCtlClockGet() / PID_FREQ);  // Update display at ~ 2 Hz
         utickCount++;
 	}
 

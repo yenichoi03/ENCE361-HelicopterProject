@@ -35,10 +35,11 @@
 #include "utils/ustdlib.h"
 #include "circBufT.h"
 #include "yaw.h"
+#include "control.h"
 
 void initUSB_UART();
 
-void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle);
+void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle, control_terms_t other);
 
 void UARTSend (char *pucBuffer);
 
