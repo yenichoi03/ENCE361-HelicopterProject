@@ -71,15 +71,12 @@ int32_t getYawRaw(void)
 }
 
 
-int32_t getReferencePosition(int32_t yaw_hund_deg)
+int32_t getReferencePosition(void)
 {
-    int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
-
     if (states <= 4) {
-        yaw_deg += 90;
+        yaw_setpoint += 90;
     }
 
-    yaw_setpoint = yaw_deg;
     states += 1;
     return yaw_setpoint;
 }

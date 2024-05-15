@@ -42,6 +42,7 @@
 #define BUTTONS_FREQ 10
 #define DISPLAY_FREQ 10
 #define UART_FREQ 200
+#define REFERENCE_FREQ 1
 
 #define TIME_DELTA (10000 / PID_FREQ)
 
@@ -51,6 +52,8 @@ bool run_pid = false;
 bool run_buttons = false;
 bool run_display = false;
 bool run_uart = false;
+bool run_reference = false;
+bool reference_flag = false;
 
 void SysTickIntHandler(void)
 {
@@ -69,6 +72,9 @@ void SysTickIntHandler(void)
     if (schedule_ticks % (1000 / UART_FREQ) == 4) {
         run_uart = true;
     }
+    if (schedule_ticks % (1000 / REFERENCE_FREQ) == 4) {
+            run_reference = true;
+        }
     schedule_ticks++;
 }
 
@@ -96,13 +102,14 @@ int main(void)
 
     IntMasterEnable();
     int alt_setpoint = 50;
-//    int yaw_setpoint = 10;
     int yaw_setpoint_wrap = 10;
     uint64_t utickCount = 0;
 
-    bool reference_flag = false;
     
+
 	while (1) {
+
+	    uint32_t yaw_setpoint = getReferencePosition();
 	    if (run_pid) {
 	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint * 100, yaw_setpoint_wrap * 100, TIME_DELTA);
 	        run_pid = false;
@@ -136,23 +143,17 @@ int main(void)
         } else if (run_uart) {
             helicopterInfo(getHeightPercentage() / 100, getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle(), getControlTerms());
             run_uart = false;
+        } else if (run_reference && reference_flag == false) {
+
+             if (yaw_setpoint != 0) {
+                 yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
+             } else if (yaw_setpoint == 0) {
+                 reference_flag = true;
+             }
+
+             run_reference = false;
         }
 
-
-        if (utickCount % 200 == 1) {
-            helicopterInfo(getHeightPercentage(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
-
-            if (yaw_setpoint != 0 && reference_flag == false) {
-                yaw_setpoint = getReferencePosition(getYawHundDeg());
-            } else if (getYawSetPoint() == 0) {
-                reference_flag = true;
-            }
-        }
-
-
-        if (utickCount % 70 == 1) {
-            yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
-        }
         utickCount++;
 	}
 
