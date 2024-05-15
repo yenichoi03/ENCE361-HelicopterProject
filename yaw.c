@@ -17,8 +17,7 @@
 int32_t yaw = 0;
 int32_t yaw_hund_deg = 0;
 int32_t yaw_hund_deg_abs = 0;
-int32_t yaw_setpoint = 10;
-int8_t states = 1;
+bool has_calibrated = false;
 
 int16_t QDE[4][4] = {{0, -1, 1, 0},
                      {1, 0, 0, -1},
@@ -30,7 +29,7 @@ static void referenceIntHandler(void)
 {
     GPIOIntClear(GPIO_PORTC_BASE, GPIO_PIN_4);
     yaw = 0;
-    yaw_setpoint = 0;
+    has_calibrated = true;
 }
 
 // Quadrature encoder interrupt
@@ -48,11 +47,9 @@ static void yawIntHandler(void)
       yaw_hund_deg = getYawWrap(yaw_hund_deg_abs, 100);
 }
 
-int32_t getYawSetPoint(void)
-{
-    return yaw_setpoint;
+bool hasYawCalibrated(void) {
+    return has_calibrated;
 }
-
 
 int32_t getYawHundDeg(void)
 {
@@ -69,18 +66,6 @@ int32_t getYawRaw(void)
 {
     return yaw;
 }
-
-
-int32_t getReferencePosition(void)
-{
-    if (states <= 4) {
-        yaw_setpoint += 90;
-    }
-
-    states += 1;
-    return yaw_setpoint;
-}
-
 
 // Initialises GPIO ports and pins to read yaw
 void initYaw (void)

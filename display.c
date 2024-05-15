@@ -24,7 +24,7 @@ int sign(int num)
 }
 
 // Function to display the filtered ADC value (10-bit value, note) and sample count.
-void displayStatistics(int alt_percent, int yaw_hund_deg, int alt_setpoint, int yaw_deg_setpoint, int tail_duty_cycle, int main_duty_cycle)
+void displayStatistics(int alt_percent, int yaw_hund_deg, int alt_setpoint, int yaw_deg_setpoint, int tail_duty_cycle, int main_duty_cycle, heli_states_t heli_state)
 {
     char string[17];  // 16 characters across the display
 
@@ -39,11 +39,33 @@ void displayStatistics(int alt_percent, int yaw_hund_deg, int alt_setpoint, int 
     OLEDStringDraw (string, 0, 1);
 
     // Display for duty cucle for main motor
-    usnprintf (string, sizeof(string), "Main: %6d%%", main_duty_cycle);
+    usnprintf (string, sizeof(string), "DC M:%2d%%, T:%2d%%", main_duty_cycle, tail_duty_cycle);
     OLEDStringDraw (string, 0, 2);
 
     // Display for duty cycle for tail motor
-    usnprintf (string, sizeof(string), "Tail: %6d%%", tail_duty_cycle);
-    OLEDStringDraw (string, 0, 3);
+    char* state_string;
+    switch (heli_state) {
+        case LANDED:
+            state_string = "LANDED        ";
+            break;
+        case CALIBRATING:
+            state_string = "CALIBRATING   ";
+            break;
+        case TAKING_OFF:
+            state_string = "TAKING_OFF    ";
+            break;
+        case LANDING:
+            state_string = "LANDING       ";
+            break;
+        case FLYING:
+            state_string = "FLYING        ";
+            break;
+        default:
+            state_string = "ERROR         ";
+            break;
+    } 
+    OLEDStringDraw (state_string, 0, 3);
+    
+    
 }
 
