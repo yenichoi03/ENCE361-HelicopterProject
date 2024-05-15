@@ -17,6 +17,8 @@
 int32_t yaw = 0;
 int32_t yaw_hund_deg = 0;
 int32_t yaw_hund_deg_abs = 0;
+int32_t yaw_setpoint = 10;
+int8_t states = 1;
 
 int16_t QDE[4][4] = {{0, -1, 1, 0},
                      {1, 0, 0, -1},
@@ -26,14 +28,13 @@ int16_t QDE[4][4] = {{0, -1, 1, 0},
 
 static void referenceIntHandler(void)
 {
-    int8_t pin_reference_state = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
-
-    getReferencePosition(yaw_hund_deg);
     GPIOIntClear(GPIO_PORTC_BASE, GPIO_PIN_4);
+    yaw = 0;
+    yaw_setpoint = 0;
 }
 
 // Quadrature encoder interrupt
-static void yawIntHandler(pin_reference_state)
+static void yawIntHandler(void)
 {
       static int prev_pin_state = 0;
       int8_t pin_state = GPIOPinRead(GPIO_PORTB_BASE, INT_PINS);
@@ -45,8 +46,13 @@ static void yawIntHandler(pin_reference_state)
 
       yaw_hund_deg_abs = yaw * 100 * DEGREES_PER_REV / TRANSITIONS_PER_REV;
       yaw_hund_deg = getYawWrap(yaw_hund_deg_abs, 100);
-
 }
+
+int32_t getYawSetPoint(void)
+{
+    return yaw_setpoint;
+}
+
 
 int32_t getYawHundDeg(void)
 {
@@ -65,49 +71,19 @@ int32_t getYawRaw(void)
 }
 
 
-//int32_t yawReference(int32_t yaw_deg)
-//{
-//    uint32_t wrapped_yaw = yaw_deg;
-//
-//    if (abs(yaw_deg) > 180) {
-//        if yaw_deg < 0 {
-//            // Negative yaw
-//            wrapped_yaw = ((yaw_deg % 180) + 180);
-//        } else {
-//            //Positive yaw
-//            wrapped_yaw = ((yaw_deg % 180) - 180);
-//        }
-//    }
-//    return wrapped_yaw;
-//}
-
 int32_t getReferencePosition(int32_t yaw_hund_deg)
 {
-    int states = 1;
-    int8_t pin_reference_state = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
     int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
 
-    if (pin_reference_state != 0) {
-        return yaw_deg
-    } else {
-        while (states < 3) {
-            if (pin_reference_state = 0) {
-                yaw_deg += 120;
-                state += 1;
-                //put some interrupt here
-            } else {
-                break;
-            }
-        }
-        return yaw_deg;
+    if (states <= 4) {
+        yaw_deg += 90;
     }
 
-    elseif (pin_reference_state != 0) {
-
-    }
-
-    return yaw_deg;
+    yaw_setpoint = yaw_deg;
+    states += 1;
+    return yaw_setpoint;
 }
+
 
 // Initialises GPIO ports and pins to read yaw
 void initYaw (void)

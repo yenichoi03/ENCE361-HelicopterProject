@@ -65,13 +65,17 @@ int main(void)
 
     IntMasterEnable();              // Enable interrupts to the processor.
     int alt_setpoint = 50;
-    int yaw_setpoint = 0;
-    int yaw_setpoint_wrap = 0;
+//    int yaw_setpoint = 10;
+    int yaw_setpoint_wrap = 10;
     uint64_t utickCount = 0;
+
+    bool reference_flag = false;
 
 
 	while (1) {
-	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap * 100, TIME_DELTA);
+
+	    int32_t yaw_setpoint = getYawSetPoint();
+	    calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap * 100, TIME_DELTA);
 
         if (utickCount % 2 == 0) {
             updateButtons();        // Checks for button press.
@@ -101,8 +105,20 @@ int main(void)
             displayStatistics(getHeightPercentage(), getYawHundDeg(), alt_setpoint, yaw_setpoint_wrap, getTailDutyCycle(), getMainDutyCycle());
         }
 
+
         if (utickCount % 200 == 1) {
             helicopterInfo(getHeightPercentage(), getYawHundDeg(), getTailDutyCycle(), getMainDutyCycle());
+
+            if (yaw_setpoint != 0 && reference_flag == false) {
+                yaw_setpoint = getReferencePosition(getYawHundDeg());
+            } else if (getYawSetPoint() == 0) {
+                reference_flag = true;
+            }
+        }
+
+
+        if (utickCount % 70 == 1) {
+            yaw_setpoint_wrap = getYawWrap(yaw_setpoint, 1);
         }
 
 
