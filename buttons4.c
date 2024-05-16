@@ -88,14 +88,14 @@ initButtons (void)
    SysCtlPeripheralEnable (RESET_PERIPH);
    GPIOPinTypeGPIOInput (RESET_PORT_BASE, RESET_PIN);
    GPIOPadConfigSet (RESET_PORT_BASE, RESET_PIN, GPIO_STRENGTH_2MA,
-      GPIO_PIN_TYPE_STD_WPU);
+      GPIO_PIN_TYPE_STD_WPD);
    but_normal[RESET] = RESET_NORMAL;
 
 	for (i = 0; i < NUM_BUTS; i++)
 	{
 		but_state[i] = but_normal[i];
 		but_count[i] = 0;
-		but_flag[i] = false;
+		but_flag[i] = true; // allow 1 read at start to determine initial state
 	}
 }
 

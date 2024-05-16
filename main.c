@@ -38,6 +38,7 @@
 #define ALT_MIN 0
 #define ALT_MAX 100
 #define YAW_STEP 15
+#define ALT_STEP 10
 
 #define SCHEDULE_FREQ 1000
 #define PID_FREQ 200
@@ -54,7 +55,7 @@ heli_states_t heli_state = LANDED;
 
 uint64_t schedule_ticks = 0;
 
-bool switch_active = false;
+bool sw_has_been_low = false;
 
 bool run_pid = false;
 bool run_buttons = false;
@@ -137,19 +138,24 @@ int main(void)
                yaw_setpoint = getYawWrap(yaw_setpoint + YAW_STEP, 1);
            }
 
-           if (checkButton(RIGHT_SW) == PUSHED) {
+
+           uint8_t right_sw_state = checkButton(RIGHT_SW);
+           if (right_sw_state == PUSHED && sw_has_been_low) {
                 if (heli_state == LANDED) {
                     heli_state = CALIBRATING;
                 }
-           } else if (checkButton(RIGHT_SW) == RELEASED) {
+           }
+
+           if (right_sw_state == RELEASED) {
+                sw_has_been_low = true;
                 if (heli_state == FLYING) {
                     heli_state = LANDING;
                 }
            }
 
-        //    if (checkButton(RESET) == PUSHED) {
-        //         SysCtlReset
-        //    }
+            if (checkButton(RESET) == PUSHED) {
+                 SysCtlReset();
+            }
 
            run_buttons = false;
         } else if (run_display) {
