@@ -36,10 +36,11 @@
 #include "circBufT.h"
 #include "yaw.h"
 #include "control.h"
+#include "fsm.h"
 
 void initUSB_UART();
 
-void helicopterInfo(int alt_percent, int yaw_hund_deg, int tail_duty_cycle, int main_duty_cycle, control_terms_t other);
+void helicopterInfo(int alt_percent, int yaw_hund_deg, int alt_setpoint, int yaw_setpoint, int tail_duty_cycle, int main_duty_cycle, control_terms_t control_terms, heli_states_t heli_state);
 
 void UARTSend (char *pucBuffer);
 

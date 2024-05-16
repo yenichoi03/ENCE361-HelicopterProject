@@ -40,9 +40,12 @@ typedef struct {
     int error;
 } control_terms_t;
 
+#define DUTY_CYCLE_MAX 70
+#define DUTY_CYCLE_MIN 10
+
 void initControl(void);
 
-void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta);
+void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta, int max_main_duty, int max_tail_duty);
 
 control_terms_t getControlTerms(void);
 

@@ -12,8 +12,6 @@
 #include "control.h"
 
 #define PWM_PERIOD 100000
-#define DUTY_CYCLE_MAX 70
-#define DUTY_CYCLE_MIN 10
 #define PWM_MAIN 0
 #define PWM_TAIL 1
 #define SCALE 1000
@@ -104,7 +102,7 @@ static int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale)
     return sign(yaw_deg_abs) * ((abs(yaw_deg_abs) + (180 * scale)) % (360 * scale) - (180 * scale));
 }
 
-static int mainController (int altitude, int altitude_setpoint, int time_delta)
+static int mainController (int altitude, int altitude_setpoint, int time_delta, int max_main_duty)
 {
      static int prev_altitude = 0;
 
@@ -115,10 +113,16 @@ static int mainController (int altitude, int altitude_setpoint, int time_delta)
 
      int control = (main_terms.P + (main_terms.I + main_dI) + main_terms.D ) / (SCALE * SCALE) + gravity_offset_pc;
 
-     if (control > DUTY_CYCLE_MAX) {
-         control = DUTY_CYCLE_MAX;
-     } else if (control < DUTY_CYCLE_MIN) {
-         control = DUTY_CYCLE_MIN;
+     if (max_main_duty > DUTY_CYCLE_MAX) {
+        max_main_duty = DUTY_CYCLE_MAX;
+    }
+
+     int min_main_duty = max_main_duty < DUTY_CYCLE_MIN ? max_main_duty : DUTY_CYCLE_MIN;
+
+     if (control > max_main_duty) {
+         control = max_main_duty;
+     } else if (control < min_main_duty) {
+         control = min_main_duty;
      } else {
          main_terms.I = (main_terms.I + main_dI);
      }
@@ -129,7 +133,7 @@ static int mainController (int altitude, int altitude_setpoint, int time_delta)
 }
 
 
-static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main_output, int time_delta)
+static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main_output, int time_delta, int max_tail_duty)
 {
 
     static int prev_yaw = 0;
@@ -151,10 +155,16 @@ static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main
 
     int control = (tail_terms.P + tail_terms.I + tail_terms.D) / (SCALE * SCALE) + ((tail_coupling_pc * main_output) / 100);
 
-    if (control > DUTY_CYCLE_MAX) {
-        control = DUTY_CYCLE_MAX;
-    } else if (control < DUTY_CYCLE_MIN) {
-        control = DUTY_CYCLE_MIN;
+    if (max_tail_duty > DUTY_CYCLE_MAX) {
+        max_tail_duty = DUTY_CYCLE_MAX;
+    }
+
+    int min_tail_duty = max_tail_duty < DUTY_CYCLE_MIN ? max_tail_duty : DUTY_CYCLE_MIN;
+
+    if (control > max_tail_duty) {
+        control = max_tail_duty;
+    } else if (control < min_tail_duty) {
+        control = min_tail_duty;
     }
 
     prev_yaw = yaw_hund_deg;
@@ -163,11 +173,10 @@ static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main
 }
 
 
-void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta)
+void calculateControl(int altitude, int yaw, int altitude_setpoint, int yaw_setpoint, int time_delta, int max_main_duty, int max_tail_duty)
 {
-
-   main_duty_cycle = mainController(altitude, altitude_setpoint, time_delta);
-   tail_duty_cycle = tailController(yaw, yaw_setpoint, main_duty_cycle, time_delta);
+   main_duty_cycle = mainController(altitude, altitude_setpoint, time_delta, max_main_duty);
+   tail_duty_cycle = tailController(yaw, yaw_setpoint, main_duty_cycle, time_delta, max_tail_duty);
    setPWM(main_duty_cycle, PWM_MAIN);
    setPWM(tail_duty_cycle, PWM_TAIL);
 }
