@@ -42,37 +42,54 @@ initButtons (void)
 {
 	int i;
 
-	// UP button (active HIGH)
-    SysCtlPeripheralEnable (UP_BUT_PERIPH);
-    GPIOPinTypeGPIOInput (UP_BUT_PORT_BASE, UP_BUT_PIN);
-    GPIOPadConfigSet (UP_BUT_PORT_BASE, UP_BUT_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPD);
-    but_normal[UP] = UP_BUT_NORMAL;
-	// DOWN button (active HIGH)
-    SysCtlPeripheralEnable (DOWN_BUT_PERIPH);
-    GPIOPinTypeGPIOInput (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
-    GPIOPadConfigSet (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPD);
-    but_normal[DOWN] = DOWN_BUT_NORMAL;
-    // LEFT button (active LOW)
-    SysCtlPeripheralEnable (LEFT_BUT_PERIPH);
-    GPIOPinTypeGPIOInput (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
-    GPIOPadConfigSet (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPU);
-    but_normal[LEFT] = LEFT_BUT_NORMAL;
-    // RIGHT button (active LOW)
-      // Note that PF0 is one of a handful of GPIO pins that need to be
-      // "unlocked" before they can be reconfigured.  This also requires
-      //      #include "inc/tm4c123gh6pm.h"
-    SysCtlPeripheralEnable (RIGHT_BUT_PERIPH);
-    //---Unlock PF0 for the right button:
-    GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;
-    GPIO_PORTF_CR_R |= GPIO_PIN_0; //PF0 unlocked
-    GPIO_PORTF_LOCK_R = GPIO_LOCK_M;
-    GPIOPinTypeGPIOInput (RIGHT_BUT_PORT_BASE, RIGHT_BUT_PIN);
-    GPIOPadConfigSet (RIGHT_BUT_PORT_BASE, RIGHT_BUT_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPU);
-    but_normal[RIGHT] = RIGHT_BUT_NORMAL;
+   // UP button (active HIGH)
+   SysCtlPeripheralEnable (UP_BUT_PERIPH);
+   GPIOPinTypeGPIOInput (UP_BUT_PORT_BASE, UP_BUT_PIN);
+   GPIOPadConfigSet (UP_BUT_PORT_BASE, UP_BUT_PIN, GPIO_STRENGTH_2MA,
+      GPIO_PIN_TYPE_STD_WPD);
+   but_normal[UP] = UP_BUT_NORMAL;
+
+   // DOWN button (active HIGH)
+   SysCtlPeripheralEnable (DOWN_BUT_PERIPH);
+   GPIOPinTypeGPIOInput (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
+   GPIOPadConfigSet (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN, GPIO_STRENGTH_2MA,
+      GPIO_PIN_TYPE_STD_WPD);
+   but_normal[DOWN] = DOWN_BUT_NORMAL;
+
+   // LEFT button (active LOW)
+   SysCtlPeripheralEnable (LEFT_BUT_PERIPH);
+   GPIOPinTypeGPIOInput (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
+   GPIOPadConfigSet (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN, GPIO_STRENGTH_2MA,
+      GPIO_PIN_TYPE_STD_WPU);
+   but_normal[LEFT] = LEFT_BUT_NORMAL;
+
+   // RIGHT button (active LOW)
+   // Note that PF0 is one of a handful of GPIO pins that need to be
+   // "unlocked" before they can be reconfigured.  This also requires
+   //      #include "inc/tm4c123gh6pm.h"
+   SysCtlPeripheralEnable (RIGHT_BUT_PERIPH);
+   //---Unlock PF0 for the right button:
+   GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;
+   GPIO_PORTF_CR_R |= GPIO_PIN_0; //PF0 unlocked
+   GPIO_PORTF_LOCK_R = GPIO_LOCK_M;
+   GPIOPinTypeGPIOInput (RIGHT_BUT_PORT_BASE, RIGHT_BUT_PIN);
+   GPIOPadConfigSet (RIGHT_BUT_PORT_BASE, RIGHT_BUT_PIN, GPIO_STRENGTH_2MA,
+      GPIO_PIN_TYPE_STD_WPU);
+   but_normal[RIGHT] = RIGHT_BUT_NORMAL;
+
+   // RIGHT switch (active low)
+   SysCtlPeripheralEnable (RIGHT_SW_PERIPH);
+   GPIOPinTypeGPIOInput (RIGHT_SW_PORT_BASE, RIGHT_SW_PIN);
+   GPIOPadConfigSet (RIGHT_SW_PORT_BASE, RIGHT_SW_PIN, GPIO_STRENGTH_2MA,
+      GPIO_PIN_TYPE_STD_WPD);
+   but_normal[RIGHT_SW] = RIGHT_SW_NORMAL;
+
+   // Reset Virtual Switch (active low)
+   SysCtlPeripheralEnable (RESET_PERIPH);
+   GPIOPinTypeGPIOInput (RESET_PORT_BASE, RESET_PIN);
+   GPIOPadConfigSet (RESET_PORT_BASE, RESET_PIN, GPIO_STRENGTH_2MA,
+      GPIO_PIN_TYPE_STD_WPU);
+   but_normal[RESET] = RESET_NORMAL;
 
 	for (i = 0; i < NUM_BUTS; i++)
 	{
@@ -102,6 +119,8 @@ updateButtons (void)
 	but_value[DOWN] = (GPIOPinRead (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN) == DOWN_BUT_PIN);
    but_value[LEFT] = (GPIOPinRead (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN) == LEFT_BUT_PIN);
    but_value[RIGHT] = (GPIOPinRead (RIGHT_BUT_PORT_BASE, RIGHT_BUT_PIN) == RIGHT_BUT_PIN);
+   but_value[RIGHT_SW] = (GPIOPinRead (RIGHT_SW_PORT_BASE, RIGHT_SW_PIN) == RIGHT_SW_PIN);
+   but_value[RESET] = (GPIOPinRead (RESET_PORT_BASE, RESET_PIN) == RESET_PIN);
 	// Iterate through the buttons, updating button variables as required
 	for (i = 0; i < NUM_BUTS; i++)
 	{

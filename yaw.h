@@ -40,10 +40,14 @@
 /**Calls the interrupt handler for every rising or falling edge detected**/
 void initYaw (void);
 
+bool hasYawCalibrated (void);
+
 int getYawHundDeg(void);
 
 int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale);
 
 int getYawRaw(void);
+
+int32_t getReferencePosition(void);
 
 #endif
