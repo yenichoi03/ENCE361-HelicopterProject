@@ -34,10 +34,10 @@
 #include "circBufT.h"
 
 typedef struct {
-    int P;
-    int I;
-    int D;
-    int error;
+    int64_t P;
+    int64_t I;
+    int64_t D;
+    int64_t error;
 } control_terms_t;
 
 #define DUTY_CYCLE_MAX 70

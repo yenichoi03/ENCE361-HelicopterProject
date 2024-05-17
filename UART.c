@@ -72,8 +72,8 @@ void helicopterInfo(int alt_percent, int yaw_hund_deg, int alt_setpoint, int yaw
                 break;
         }
 
-        usnprintf(string, sizeof(string), "Alt: %3d, Yaw: %4d, Alt Setpoint: %3d, Yaw Setpoint: %4d, Main_Duty: %3d%%, Tail_Duty: %3d%%, Heli State: %s\r\n", alt_percent, yaw_deg, alt_setpoint, yaw_setpoint, main_duty_cycle, tail_duty_cycle, state_string);
-        // usnprintf(string, sizeof(string), "Alt:%d,Yaw:%d,Main_DC:%d,Tail_DC:%d,P:%d,I:%d,Err:%d\r\n", alt_percent, yaw_deg, main_duty_cycle, tail_duty_cycle, control_terms.P / 1000000, control_terms.I / 1000000, control_terms.error / (1000 * 100));
+        usnprintf(string, sizeof(string), "Alt: %3d (%3d) Yaw:%4d (%4d) Main_Duty: %3d%% Tail_Duty: %3d%% State: %s\r\n", alt_percent, alt_setpoint, yaw_deg, yaw_setpoint, main_duty_cycle, tail_duty_cycle, state_string);
+//         usnprintf(string, sizeof(string), "Alt:%d,Yaw:%d,Main_DC:%d,Tail_DC:%d,P:%d,I:%d,D:%d,Err:%d\r\n", alt_percent, yaw_deg, main_duty_cycle, tail_duty_cycle, (int)(control_terms.P / 1000000), (int)(control_terms.I / 1000000), (int)(control_terms.D / 1000000), (int)(control_terms.error / (1000 * 100)));
         pucBuffer = string;
     } else {
         UARTCharPut(UART0_BASE, *pucBuffer);

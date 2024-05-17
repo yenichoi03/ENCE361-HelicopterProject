@@ -15,19 +15,20 @@
 #define PWM_MAIN 0
 #define PWM_TAIL 1
 #define SCALE 1000
+#define MAX_REASONABLE_STEADY_STATE_ERROR 25
 
 #define TAIL_I_MAX 3
 
 // Controller coefficients for main motor
 const int Kp_main = 20;
-const int Ki_main = 20;
-const int Kd_main = 0;
+const int Ki_main = 3;
+const int Kd_main = 40;
 const int gravity_offset_pc = 33;
 
 // Controller coefficients for tail motor
-const int Kp_tail = 80;
-const int Ki_tail = 10;
-const int Kd_tail = 0;
+const int Kp_tail = 120;
+const int Ki_tail = 40;
+const int Kd_tail = 80;
 const int tail_coupling_pc = 80;
 
 int main_duty_cycle;
@@ -94,7 +95,7 @@ int getTailDutyCycle(void)
 
 control_terms_t getControlTerms(void)
 {
-    return main_terms;
+    return tail_terms;
 }
 
 static int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale)
@@ -109,7 +110,8 @@ static int mainController (int altitude, int altitude_setpoint, int time_delta, 
      main_terms.error = SCALE * altitude_setpoint - SCALE * altitude;
      main_terms.P = Kp_main * main_terms.error;
      int main_dI = Ki_main * main_terms.error * time_delta / 10000;
-     main_terms.D = Kd_main * (prev_altitude * SCALE - altitude * SCALE) * 10000 / time_delta;
+     main_terms.D = Kd_main * (int64_t)(prev_altitude * SCALE - altitude * SCALE) * 1000 / time_delta;
+
 
      int control = (main_terms.P + (main_terms.I + main_dI) + main_terms.D ) / (SCALE * SCALE) + gravity_offset_pc;
 
@@ -142,18 +144,15 @@ static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main
     tail_terms.error = getYawWrap(tail_terms.error, 100 * SCALE);
 
     tail_terms.P = Kp_tail * tail_terms.error / 10;
-    int tail_dI = Ki_tail * tail_terms.error * time_delta / 10000;
-    int tail_dError = getYawWrap(prev_yaw * SCALE - yaw_hund_deg * SCALE, 100 * SCALE);
-    tail_terms.D = Kd_tail * (tail_dError) * 10000 / time_delta;
+    int64_t tail_dI = Ki_tail * tail_terms.error * time_delta / 100000;
+    int64_t tail_dError = getYawWrap(prev_yaw * SCALE - yaw_hund_deg * SCALE, 100 * SCALE);
+    tail_terms.D = Kd_tail * (tail_dError) * 1000 / time_delta;
 
-    tail_terms.I = (tail_terms.I + tail_dI);
-    if (tail_terms.I > TAIL_I_MAX * SCALE * SCALE) {
-        tail_terms.I = TAIL_I_MAX * SCALE * SCALE;
-    } else if (tail_terms.I < -1 * TAIL_I_MAX * SCALE * SCALE) {
-        tail_terms.I = -1 * TAIL_I_MAX * SCALE * SCALE;
+    if (tail_terms.P / (SCALE * SCALE) > DUTY_CYCLE_MAX) {
+        tail_terms.P = DUTY_CYCLE_MAX * (SCALE * SCALE);
     }
 
-    int control = (tail_terms.P + tail_terms.I + tail_terms.D) / (SCALE * SCALE) + ((tail_coupling_pc * main_output) / 100);
+    int control = (tail_terms.P + tail_terms.I + tail_dI + tail_terms.D) / (SCALE * SCALE) + ((tail_coupling_pc * main_output) / 100);
 
     if (max_tail_duty > DUTY_CYCLE_MAX) {
         max_tail_duty = DUTY_CYCLE_MAX;
@@ -165,6 +164,8 @@ static int tailController (int yaw_hund_deg, int yaw_hund_deg_setpoint, int main
         control = max_tail_duty;
     } else if (control < min_tail_duty) {
         control = min_tail_duty;
+    } else if (abs(tail_terms.error / (SCALE * 100)) < MAX_REASONABLE_STEADY_STATE_ERROR) {
+        tail_terms.I = (tail_terms.I + tail_dI);
     }
 
     prev_yaw = yaw_hund_deg;

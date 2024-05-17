@@ -40,11 +40,11 @@
 #define YAW_STEP 15
 #define ALT_STEP 10
 
-#define SCHEDULE_FREQ 1000
-#define PID_FREQ 200
-#define BUTTONS_FREQ 10
+#define SCHEDULE_FREQ 2000
+#define PID_FREQ 40
+#define BUTTONS_FREQ 60
 #define DISPLAY_FREQ 10
-#define UART_FREQ 600
+#define UART_FREQ 700 // characters per second
 #define FSM_FREQ 10
 
 #define TIME_DELTA (10000 / PID_FREQ)
@@ -66,22 +66,22 @@ bool run_fsm = false;
 
 void SysTickIntHandler(void)
 {
-    if (schedule_ticks % (1000 / SAMPLE_RATE_HZ) == 0) {
+    if (schedule_ticks % (SCHEDULE_FREQ / SAMPLE_RATE_HZ) == 0) {
         triggerADC(); // preemptive
     }
-    if (schedule_ticks % (1000 / PID_FREQ) == 0) {
+    if (schedule_ticks % (SCHEDULE_FREQ / PID_FREQ) == 0) {
         run_pid = true;
     }
-    if (schedule_ticks % (1000 / DISPLAY_FREQ) == 0) {
+    if (schedule_ticks % (SCHEDULE_FREQ / DISPLAY_FREQ) == 0) {
         run_display = true;
     }
-    if (schedule_ticks % (1000 / BUTTONS_FREQ) == 0) {
+    if (schedule_ticks % (SCHEDULE_FREQ / BUTTONS_FREQ) == 0) {
         run_buttons = true;
     }
-    if (schedule_ticks % (1000 / UART_FREQ) == 0) {
+    if (schedule_ticks % (SCHEDULE_FREQ / UART_FREQ) == 0) {
         run_uart = true;
     }
-    if (schedule_ticks % (1000 / FSM_FREQ) == 0) {
+    if (schedule_ticks % (SCHEDULE_FREQ / FSM_FREQ) == 0) {
         run_fsm = true;
     }
     schedule_ticks++;
@@ -107,8 +107,8 @@ int main(void)
     initYaw();
     initControl();
     initUSB_UART();
-
     IntMasterEnable();
+
     int alt_setpoint = 0;
     int yaw_setpoint = 0;
     uint64_t utickCount = 0;
@@ -121,7 +121,7 @@ int main(void)
 	        calculateControl(getHeightPercentage(), getYawHundDeg(), alt_setpoint * 100, yaw_setpoint * 100, TIME_DELTA, max_main_duty, max_tail_duty);
 	        run_pid = false;
 	    } else if (run_buttons) {
-            updateButtons();        // Checks for button press.
+            updateButtons();
 
             if (heli_state == FLYING) {
                 if (checkButton(UP) == PUSHED) {
@@ -190,12 +190,17 @@ int main(void)
                     max_main_duty = DUTY_CYCLE_MAX;
                     max_tail_duty = DUTY_CYCLE_MAX;
                     if (hasYawCalibrated()) {
+                        alt_setpoint = 50;
                         heli_state = FLYING;
                         yaw_setpoint = getYawWrap(0, 1);
                     } else {
                         alt_setpoint = 5;
                         yaw_setpoint = getYawWrap(getYawHundDeg() / 100 + CALIBRATION_ROTATION_MARGIN, 1);
                     }
+                    break;
+                case FLYING:
+                    max_main_duty = DUTY_CYCLE_MAX;
+                    max_tail_duty = DUTY_CYCLE_MAX;
                     break;
                 case LANDING:
                     yaw_setpoint = 0;
@@ -211,7 +216,6 @@ int main(void)
                                 max_main_duty = 0;
                                 heli_state = LANDED;
                             }
-
                         }
                     }
                     break;
