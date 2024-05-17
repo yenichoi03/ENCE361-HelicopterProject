@@ -1,13 +1,9 @@
 //*****************************************************************************
 //
-// altitude.c - Calculates altitude from ADC
-//
-//         The samples (ADC outputs) are stored continually in a circular buffer. At regular intervals the mean value of the samples in the buffer are computed.
+// fsm.h - Defines helicopter state type to allow use by multiple modules
 //
 //
 // Author:  ych227, sli219
-//
-//
 //*****************************************************************************
 
 #ifndef FSM_H

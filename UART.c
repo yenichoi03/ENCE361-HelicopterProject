@@ -1,15 +1,8 @@
 //*****************************************************************************
 //
-// UART.c - Code for UART communications
-//
-//          Information on the status of the helicopter should be transmitted via a serial link from UART0 at 9600 baud, with 1 stop bit and no parity bit
-//          in each transmitted byte. Status information should include the desired and actual yaw (in degrees), the desired and actual altitude (as a
-//          percentage of the maximum altitude), the duty cycle of each of the PWM signals controlling the rotors (%, with 0 meaning off) Updates should be
-//          transmitted at regular intervals (no fewer than 4 updates per second).
+// UART.c - Functions for USB UART communications
 //
 // Author:  ych227, sli219
-//
-//
 //*****************************************************************************
 
 
@@ -26,7 +19,7 @@ volatile uint8_t slowTick = false;
 char string[150];
 
 // Initialisations for UART communications from port A and UART0 pins
-void initUSB_UART() {
+void initUART() {
 
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);                    // Enable GPIO port A which is used for UART0 pins.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -72,8 +65,12 @@ void helicopterInfo(int alt_percent, int yaw_hund_deg, int alt_setpoint, int yaw
                 break;
         }
 
+        #ifdef DEBUG
+        usnprintf(string, sizeof(string), "Alt:%d,Yaw:%d,Main_DC:%d,Tail_DC:%d,P:%d,I:%d,D:%d,Err:%d\r\n", alt_percent, yaw_deg, main_duty_cycle, tail_duty_cycle, (int)(control_terms.P / 1000000), (int)(control_terms.I / 1000000), (int)(control_terms.D / 1000000), (int)(control_terms.error / (1000 * 100)));
+        #else 
         usnprintf(string, sizeof(string), "Alt: %3d (%3d) Yaw:%4d (%4d) Main_Duty: %3d%% Tail_Duty: %3d%% State: %s\r\n", alt_percent, alt_setpoint, yaw_deg, yaw_setpoint, main_duty_cycle, tail_duty_cycle, state_string);
-//         usnprintf(string, sizeof(string), "Alt:%d,Yaw:%d,Main_DC:%d,Tail_DC:%d,P:%d,I:%d,D:%d,Err:%d\r\n", alt_percent, yaw_deg, main_duty_cycle, tail_duty_cycle, (int)(control_terms.P / 1000000), (int)(control_terms.I / 1000000), (int)(control_terms.D / 1000000), (int)(control_terms.error / (1000 * 100)));
+        #endif
+        
         pucBuffer = string;
     } else {
         UARTCharPut(UART0_BASE, *pucBuffer);

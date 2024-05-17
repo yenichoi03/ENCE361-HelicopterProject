@@ -1,9 +1,7 @@
 //*****************************************************************************
 //
-// display.c - Displays helicopter statistics on OLED board.
+// display.c - Displays helicopter statistics on the Orbit Board OLED
 //
-//             The helicopter altitude should be displayed as a percentage on the Orbit OLED board. 100 % should indicate maximum altitude, 0 % should
-//             indicate minimum altitude (when the helicopter has landed).
 //
 // Author:  ych227, sli219
 //
@@ -28,21 +26,21 @@ void displayStatistics(int alt_percent, int yaw_hund_deg, int alt_setpoint, int 
 {
     char string[17];  // 16 characters across the display
 
-    // Display for altitude.
+    // Display altitude
     usnprintf (string, sizeof(string), "Alt: %4d%% (%d%%)", alt_percent, alt_setpoint);
     OLEDStringDraw (string, 0, 0);
 
-    // Display for yaw.
+    // Display yaw
     int yaw_deg = sign(yaw_hund_deg) * abs(yaw_hund_deg) / 100;
     int yaw_dec_deg = (abs(yaw_hund_deg) % 100) / 10;
     usnprintf (string, sizeof(string), "Yaw:%4d.%01d (%03d)", yaw_deg, yaw_dec_deg, yaw_deg_setpoint);
     OLEDStringDraw (string, 0, 1);
 
-    // Display for duty cucle for main motor
+    // Display duty cycles
     usnprintf (string, sizeof(string), "DC M:%2d%%, T:%2d%%", main_duty_cycle, tail_duty_cycle);
     OLEDStringDraw (string, 0, 2);
 
-    // Display for duty cycle for tail motor
+    // Display helicopter state
     char* state_string;
     switch (heli_state) {
         case LANDED:

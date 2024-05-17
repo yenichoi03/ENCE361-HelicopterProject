@@ -51,8 +51,6 @@ uint32_t getCurrentValue(void);
 
 int16_t getHeightPercentage(void);
 
-int16_t getSampleCount(void);
-
 void ZeroHeightReset(void);
 
 

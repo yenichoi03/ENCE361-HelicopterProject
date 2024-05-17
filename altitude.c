@@ -104,13 +104,3 @@ int16_t getHeightPercentage(void)
 {
     return g_heightPercent;
 }
-
-
-int16_t getSampleCount(void)
-{
-    return g_ulSampCnt;
-}
-
-
-
-

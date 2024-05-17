@@ -1,9 +1,7 @@
 //*****************************************************************************
 //
-// yaw.c - gives  reliable continuous yaw monitoring with sub-degree precision.
+// yaw.h - Header file for yaw.c
 //
-//         The program should calculate yaw in degrees, relative to the initial orientation of the portable mount when program execution starts.
-//         When viewed from above, clockwise rotation should correspond to positive yaw, counter-clockwise to negative
 //
 // Author:  ych227, sli219
 //
@@ -33,11 +31,10 @@
 
 // CONSTANTS
 #define DEGREES_PER_REV 360
-#define INT_PINS GPIO_PIN_0 | GPIO_PIN_1
+#define YAW_INT_PINS GPIO_PIN_0 | GPIO_PIN_1
 #define WHEEL_SLOTS 112
 #define TRANSITIONS_PER_REV (WHEEL_SLOTS * 4)
 
-/**Calls the interrupt handler for every rising or falling edge detected**/
 void initYaw (void);
 
 bool hasYawCalibrated (void);
@@ -45,8 +42,6 @@ bool hasYawCalibrated (void);
 int getYawHundDeg(void);
 
 int32_t getYawWrap(int32_t yaw_deg_abs, int32_t scale);
-
-int getYawRaw(void);
 
 int32_t getReferencePosition(void);
 

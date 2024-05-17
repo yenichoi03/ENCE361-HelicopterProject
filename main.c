@@ -3,10 +3,9 @@
 // main.c - Main code for helicopter project
 //
 // Author:  ych227, sli219
-//
-//
 //*****************************************************************************
 
+// #define DEBUG
 
 #include <altitude.h>
 #include <stdint.h>
@@ -49,14 +48,12 @@
 
 #define TIME_DELTA (10000 / PID_FREQ)
 
-#define CALIBRATION_ROTATION_MARGIN 30
+// how far ahead the setpoint should be during yaw calibration
+#define CALIBRATION_ROTATION_MARGIN 30 
 
 heli_states_t heli_state = LANDED;
 
 uint64_t schedule_ticks = 0;
-
-bool sw_has_been_low = false;
-bool reset_has_been_off = false;
 
 bool run_pid = false;
 bool run_buttons = false;
@@ -64,6 +61,7 @@ bool run_display = false;
 bool run_uart = false;
 bool run_fsm = false;
 
+// Scheduler Interrupt
 void SysTickIntHandler(void)
 {
     if (schedule_ticks % (SCHEDULE_FREQ / SAMPLE_RATE_HZ) == 0) {
@@ -87,7 +85,6 @@ void SysTickIntHandler(void)
     schedule_ticks++;
 }
 
-// Initialisation functions for the clock (incl. SysTick), ADC, display.
 void initClock (void)
 {
     SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);   // Set the clock rate to 20 MHz.
@@ -106,12 +103,14 @@ int main(void)
     initButtons();
     initYaw();
     initControl();
-    initUSB_UART();
+    initUART();
     IntMasterEnable();
+
+    bool sw_has_been_low = false;
+    bool reset_has_been_off = false;
 
     int alt_setpoint = 0;
     int yaw_setpoint = 0;
-    uint64_t utickCount = 0;
 
     int max_main_duty;
     int max_tail_duty;
@@ -223,9 +222,6 @@ int main(void)
 
              run_fsm = false;
         }
-
-        utickCount++;
 	}
-
 }
 
